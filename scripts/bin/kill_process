@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-ROFI="rofi -dmenu -selected-row 1 -i -l 20 -p"
+ROFI="rofi -dmenu -width 100 -selected-row 1 -i -l 20 -p"
 
 selected="$(ps --user "$USER" -F | \
     ${ROFI} "Search for process to kill:" "$@" | \
