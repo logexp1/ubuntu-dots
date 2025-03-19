@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+set -e
+# Before executing this, should do some things like
+# - onedrive authentication and synchronize
+# - GnuPG settings and pass initialization
+# After this,
+# - sync firefox account, and do :nativeinstall
+# - run emacsclient from terminal to respond to message
+
+if [[ $EUID -eq 0 ]]; then
+	echo "Please run this script as user"
+	exit 1
+fi
+
+
+LOG="user_setup.log"
+user=jisoo
+uhome=/home/"$user"
+tmp="$(dirname "$(realpath "$0")")"
+basedir=$(dirname "$tmp")
+
+
+font_setup() {
+	fc-cache -v
+}
+
+link_setup() {
+    ln -sn "$uhome"/OneDrive/org "$uhome"/.org
+}
+
+
+git_setup() {
+    git config --global user.email "jisoo.h.lee@gmail.com"
+    git config --global user.name "Jisoo Lee"
+    git config --global credential.helper '!pass-git-helper $@'
+    pass git init && pass git remote add origin "https://github.com/mlmaniac/password-store.git"
+    pass git pull origin master --allow-unrelated-histories --rebase
+}
+
+home_config_setup(){
+	source $basedir/terminal/.zsh/stow_functions.sh \
+		&& restow
+}
+
+doom_setup() {
+	git clone --depth 1 https://github.com/doomemacs/doomemacs /home/$user/.config/emacs
+	/home/$user/.config/emacs/bin/doom install
+	rm /home/$user/.config/doom/*
+	home_config_setup
+	/home/$user/.config/emacs/bin/doom sync
+}
+
+systemd_setup() {
+    systemctl --user enable onedrive
+}
+
+browserpass_setup() {
+    curl https://maximbaz.com/pgp_keys.asc | gpg --import
+    build_dir=$uhome/build
+	mkdir -p $build_dir
+    latest_tag=$(curl -s https://api.github.com/repos/browserpass/browserpass-native/releases | jq -r '.[0].name')
+    tarball_url=$(curl -s https://api.github.com/repos/browserpass/browserpass-native/releases | jq -r '.[0].tarball_url')
+    file_name="browserpass-native-${latest_tag}.tar.gz"
+
+    for dir in $build_dir/*browserpass-native-*/; do
+        if [ -d "$dir" ]; then
+            rm -rf $dir
+        fi
+    done
+    if curl -L "$tarball_url" -o "$build_dir/$file_name"; then
+        cd $build_dir
+        tar -xzf "${file_name}" || echo "Error while extracting ${file_name}" >&2
+        extracted_dir=$(tar -tf "$file_name" | grep -o '^[^/]\+' | uniq)
+        echo "extracted to $extracted_dir"
+        cd $extracted_dir
+        make browserpass-linux64
+        make BIN=browserpass-linux64 configure
+        sudo make BIN=browserpass-linux64 install
+        cd /usr/lib/browserpass
+        make hosts-firefox-user
+        make hosts-brave-user
+    else
+        echo "Failed to download browserpass release"
+        exit 1
+    fi
+}
+
+
+default() {
+    font_setup
+    link_setup
+    git_setup
+    doom_setup
+    systemd_setup
+    browserpass_setup
+    randwall
+}
+
+default
