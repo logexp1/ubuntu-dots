@@ -1,0 +1,10 @@
+default partial alphanumeric_keys modifier_keys
+
+xkb_symbols "basic" {
+    include "us"
+
+    key <LWIN> { [ ISO_Level5_Shift ],
+                actions[Group1] = [ SetMods(mods=LevelFive) ],
+                vmods=LevelFive };
+    modifier_map Mod3 { ISO_Level5_Shift };
+};
