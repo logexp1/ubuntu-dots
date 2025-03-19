@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+## Author  : Aditya Shakya (adi1090x)
+## Github  : @adi1090x
+#
+## Applets : Screenshot (Ported to use Grimblast)
+
+## Modify
+## Author  : Gonçalo Duarte (MrDuartePT)
+## Github  : @MrDuartePT
+
+## Port for Grimblast (https://github.com/hyprwm/contrib/tree/main/grimblast)
+## Aur Package: grimblast-git (https://aur.archlinux.org/packages/grimblast-git)
+
+## Add this to the ~/.config/user-dirs.dirs to save in the Screenshots folder: XDG_SCREENSHOTS_DIR="$HOME/Screenshots"
+export GRIMBLAST_EDITOR="swappy -f"
+
+prompt='Screenshot'
+
+# Options
+option_1="󰍺 Whole Screen"
+option_2="󰍹 Active Screen"
+option_3="󱣴 Capture Area"
+
+save=' Save'
+edit='󱛦 Edit'
+
+####
+# Chose Screenshot Type
+# CMD
+type_screenshot_cmd() {
+    rofi -theme '~/.config/rofi/styles/screenshot.rasi' -p $prompt -dmenu -selected-row 1
+}
+
+# Ask for confirmation
+type_screenshot_exit() {
+    echo -e "$option_1\n$option_2\n$option_3" | type_screenshot_cmd
+}
+
+# Confirm and execute
+type_screenshot_run() {
+    selected_type_screenshot="$(type_screenshot_exit)"
+    case $selected_type_screenshot in
+        $option_1)
+            option_type_screenshot=screen
+            ;;
+        $option_2)
+            option_type_screenshot=output
+            ;;
+        $option_3)
+            option_type_screenshot=area
+            ;;
+    esac
+}
+
+####
+# Choose to save or copy photo
+# CMD
+copy_save_editor_cmd() {
+    rofi -theme-str 'window {location: center; anchor: center; fullscreen: false; width: 400px; height:150px;}' \
+        -theme-str 'mainbox {orientation: vertical; children: [ "message", "listview" ];}' \
+        -theme-str 'element-text {horizontal-align: 0.5;}' \
+        -dmenu \
+        -p 'Choose Option' \
+        -mesg 'save or open in image editor'
+}
+
+# Ask for confirmation
+copy_save_editor_exit() {
+    echo -e "$save\n$edit" | copy_save_editor_cmd
+}
+
+# Confirm and execute
+copy_save_editor_run() {
+    selected_chosen="$(copy_save_editor_exit)"
+    if [[ "$selected_chosen" == "$copy" ]]; then
+        option_chosen=copy
+        ${1}
+    elif [[ "$selected_chosen" == "$save" ]]; then
+        option_chosen=save
+        ${1}
+    elif [[ "$selected_chosen" == "$copy_save" ]]; then
+        option_chosen=copysave
+        ${1}
+    elif [[ "$selected_chosen" == "$edit" ]]; then
+        option_chosen=edit
+        ${1}
+    fi
+}
+###
+
+# take shots
+takescreenshot() {
+    sleep 0.5 && grimblast --notify "$option_chosen" "$option_type_screenshot"
+}
+
+type_screenshot_run
+
+# proceed only if some option is selected
+options=("screen" "output" "area")
+if [[ " ${options[@]} " =~ " $option_type_screenshot " ]]; then
+    copy_save_editor_run "takescreenshot"
+fi

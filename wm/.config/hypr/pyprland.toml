@@ -11,7 +11,8 @@ class = "dropdown"
 animation = "fromTop"
 margin = 50
 # unfocus = "hide"
-lazy = false
+lazy = true
+match_by = "class"
 size = "75% 80%"
 # max_size = "1920px 100%"
 

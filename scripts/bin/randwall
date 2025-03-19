@@ -1,0 +1,5 @@
+#!/bin/bash
+
+randwall=$(find ~/.wallpapers/ -type f | shuf -n 1)
+swww img "$randwall" --transition-type any --transition-fps 60
+wal -i "$randwall" -s -t &
