@@ -421,11 +421,11 @@ I really prefer default doom-one theme...
 size 를 float 로 설정하면 hidpi setting 을 따르게 된다.
 #+begin_src emacs-lisp
 (setq!
- doom-font (font-spec :family "Cascadia Code" :size 10.0)
+ doom-font (font-spec :family "Fira Code" :size 10.0)
  ;; doom-font (font-spec :family "Roboto Mono" :size 15)
- doom-variable-pitch-font (font-spec :family "Source Code Pro")
+ doom-variable-pitch-font (font-spec :family "Noto Sans CJK KR")
  ;; doom-serif-font (font-spec :family "Libre Baskerville")
- doom-symbol-font (font-spec :family "Source Han Mono K")
+ doom-symbol-font (font-spec :family "Noto Sans CJK KR")
  ;; doom-unicode-font (font-spec :family "NanumBarunGothic")
  doom-serif-font (font-spec :family "Noto Serif CJK KR")
  ;; doom-big-font (font-spec :family "Roboto Mono" :size 20)
@@ -2307,7 +2307,7 @@ _k_ : previous
                              (format "%s config view -o jsonpath='{.contexts[*].name}'" kubel-kubectl))))))
         (error "Kubectl config file ~/.kube/config does not exist!"))))
   :config
-  (kubel-vterm-setup)
+  ;; (kubel-vterm-setup)
   (map! :map yaml-mode-map
         :localleader
         :desc "kubectl apply" "a" #'kubel-apply)
@@ -3057,6 +3057,7 @@ need key authentication info in =.config/lastfmrc=, get the info from https://ww
 :END:
 #+begin_src emacs-lisp
 (use-package! vterm
+  :disabled t
   :commands +vterm/toggle
   :config
   (setq! vterm-shell "/bin/zsh"))
