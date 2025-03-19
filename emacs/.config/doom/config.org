@@ -1,0 +1,3095 @@
+#+PROPERTY: header-args :results silent
+* sane defaults
+:PROPERTIE:
+:ID:       609afc78-c5a2-4b87-9d56-25e594f3ba61
+:END:
+# TODO marked sections are excluded from being tangled
+** username and e-mail
+:PROPERTIES:
+:ID:       0ad75442-4324-4793-af29-0f6b1dbde0ce
+:END:
+#+begin_src emacs-lisp
+(setq! user-full-name "Jisoo Lee"
+      user-mail-address "jisoo.h.lee@gmail.com")
+#+end_src
+
+** defaults settings
+:PROPERTIES:
+:ID:       2b06173d-208a-4806-9af2-418ab835a980
+:END:
+#+begin_src emacs-lisp
+(setq! org-directory "~/.org/"
+       display-line-numbers-type 'relative
+       doom-localleader-key "m"
+       ;; causes strange error
+       doom-localleader-alt-key "M-m"
+                                        ; When there are lots of glyphs, keep them in memory
+       inhibit-compacting-font-caches t
+       window-combination-resize t
+       x-stretch-cursor t
+       scroll-margin 5
+       scroll-conservatively 20
+       uniquify-buffer-name-style 'forward
+       delete-by-moving-to-trash t
+       save-interprogram-paste-before-kill t)
+
+(remove-hook! 'text-mode-hook #'display-line-numbers-mode)
+
+(global-subword-mode 1)
+#+end_src
+
+** tramp
+
+#+begin_src emacs-lisp
+(use-package! tramp
+  :init
+  ;; required to use local ~/.ssh/config
+  (customize-set-variable
+   'tramp-use-ssh-controlmaster-options nil)
+  :config
+  ;; for debugging
+  ;; (setq! tramp-verbose 6)
+  ;; (setq! tramp-shell-prompt-pattern "[#$%>] *$")
+  ;; (setq! tramp-default-remote-shell "/bin/bash -l")
+  ;; (setenv "ESHELL" "bash")
+  ;; (add-to-list 'tramp-remote-process-environment "PS1=")
+  ;; reads remote's PATH variable
+  (add-to-list 'tramp-connection-properties
+               (list (regexp-quote "/sshx:remote")
+                     "remote-shell" "/bin/zsh"))
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
+#+end_src
+
+
+* Key Bindings
+** kbd mode
+#+begin_src emacs-lisp
+(use-package! kbd-mode)
+#+end_src
+
+** auto unbind
+:PROPERTIES:
+:ID:       443ad070-0718-4a6c-b7b9-e96437d567a5
+:END:
+#+begin_src emacs-lisp
+;; default universal arguments behaviors
+(setq! evil-want-C-u-delete nil
+       evil-want-C-u-scroll nil
+       evil-want-C-d-scroll nil)
+
+(general-auto-unbind-keys)
+#+end_src
+
+
+** leader keys
+:PROPERTIES:
+:ID:       97340394-de41-4841-81b5-e55461ee29db
+:END:
+#+begin_src emacs-lisp
+;; (general-create-definer general-spc
+;;   :states '(normal motion visual)
+;;   :keymaps 'override
+;;   :prefix "SPC")
+
+(general-create-definer general-t
+  :states '(normal motion visual)
+  :keymaps 'override
+  :prefix "t")
+
+(general-create-definer general-r
+  :states 'normal
+  :prefix "r")
+
+(general-create-definer general-s
+  :states 'normal
+  :prefix "s")
+
+(general-create-definer general-m
+  :states 'normal
+  :keymaps 'override
+  :prefix "m")
+
+(general-create-definer general-comma
+  :states 'normal
+  :keymaps 'override
+  :prefix ",")
+#+end_src
+
+
+** window management
+:PROPERTIES:
+:ID:       8b59c7c7-bc75-42f0-82dd-b5969d3840f2
+:END:
+#+begin_src emacs-lisp
+(defun js/kill-this-buffer ()
+  "Kill the buffer without changing current window orientation."
+  (interactive)
+  (if (minibufferp)
+      (abort-recursive-edit)
+    (kill-buffer (current-buffer))))
+
+(defun js/vsplit ()
+  "Vertically split window and switch to new window."
+
+  (interactive)
+  (split-window-vertically)
+  (other-window 1))
+
+(defun js/hsplit ()
+  "Horizontally split window and switch to new window."
+  (interactive)
+  (split-window-horizontally)
+  (other-window 1))
+
+(defun js/zoom-win ()
+  "Toggle making the current window the only one."
+  (interactive)
+  (if (= (count-windows) 1)
+      (winner-undo)
+    (delete-other-windows)))
+
+(defhydra hydra-zoom ()
+    "zoom"
+    ("i" text-scale-increase "in")
+    ("o" text-scale-decrease "out")
+)
+
+(general-t
+  "s" #'evil-save
+  "q" #'delete-window
+  "d" #'js/kill-this-buffer
+  "-" #'js/vsplit
+  "'" #'js/hsplit
+  "h" #'windmove-left
+  "j" #'windmove-down
+  "k" #'windmove-up
+  "l" #'windmove-right
+  "m" #'js/zoom-win
+  "z" #'hydra-zoom/body)
+#+end_src
+
+
+*** ace-window
+:PROPERTIES:
+:ID:       ff787999-c21c-4ac8-b310-af2665846ef2
+:END:
+#+begin_src emacs-lisp
+(use-package! ace-window
+  :general (general-def "M-w" #'ace-window))
+#+end_src
+
+
+** toggle map settings
+:PROPERTIES:
+:ID:       4b428946-513a-47fb-ae85-6941c3ea95bd
+:END:
+#+begin_src emacs-lisp
+(general-def
+  :prefix-command 'js/toggle
+  :prefix-map 'js/toggle-map
+  "d" #'toggle-debug-on-error
+  "q" #'toggle-debug-on-quit
+  "R" #'read-only-mode
+  "A" #'auto-fill-mode
+  "S" #'so-long-mode
+  "t" #'toggle-truncate-lines
+  "z" #'writeroom-mode)
+(general-t "o" #'js/toggle)
+#+end_src
+
+** evil
+
+*** evil custom variables
+:PROPERTIES:
+:ID:       1bf1406c-fb3c-4e90-8c53-a60042259961
+:END:
+
+#+begin_src emacs-lisp
+(use-package! evil
+  :init
+  (setq! evil-overriding-maps nil
+         evil-intercept-maps nil
+         evil-want-keybinding nil
+         evil-insert-state-bindings nil
+         evil-search-module 'evil-search
+         evil-ex-search-persistent-highlight nil
+         evil-want-Y-yank-to-eol t)
+  ;; (evil-mode)
+  :config
+  (general-def :prefix-map 'js/c-map
+    "c" (general-simulate-key (#'evil-change "c")))
+  (general-def 'normal
+    "c" (general-key-dispatch #'evil-change
+          :inherit-keymap js/c-map))
+
+  (defun js/norm@q ()
+    "Apply macro in q register on selected lines."
+    (interactive)
+    (evil-ex-normal (region-beginning) (region-end) "@q"))
+
+  (map!
+   :m ";" nil
+   :n ";" #'evil-ex
+   :n ":" #'eval-expression
+   :n "a" #'evil-append-line
+   :n "A" #'evil-append
+   :n "M" #'evil-set-marker
+   :v "c" #'evil-change
+   :i "C-w" #'evil-delete-backward-word
+   :i "C-o" #'evil-execute-in-normal-state
+   :n "Q" "@q"
+   :v "Q" "js/norm@q"
+   :e "<escape>" #'evil-normal-state)
+
+  (map!
+   :m "j" #'evil-next-visual-line
+   :m "k" #'evil-previous-visual-line
+   :m "^" #'evil-first-non-blank-of-visual-line
+   :m "$" #'evil-end-of-visual-line
+   :m "gj" #'evil-next-line
+   :m "gk" #'evil-previous-line
+   :m "g0" #'evil-beginning-of-line
+   :m "g$" #'evil-end-of-line
+   :m "g^" #'evil-first-non-blank
+   :n "C-p" nil
+   :n "C-n" nil
+   :m "C-p" #'evil-jump-backward
+   :m "C-n" #'evil-jump-forward
+   :ni "C-b" #'evil-switch-to-windows-last-buffer)
+
+  (setq! evil-move-cursor-back nil
+        evil-move-beyond-eol t
+        evil-ex-visual-char-range t)
+  ;; default is normal state for all modes
+  (setq! evil-normal-state-modes (append evil-emacs-state-modes
+                                        evil-normal-state-modes)
+        evil-emacs-state-modes nil
+        evil-motion-state-modes nil)
+
+  (setq! evil-normal-state-cursor '(box "dark gray")
+        evil-motion-state-cursor '(box "YellowGreen")
+        evil-insert-state-cursor '(bar "orchid")
+        evil-emacs-state-cursor '(bar "Red")
+        evil-visual-state-cursor '(box "#F86155"))
+
+  ;; escape from minibuffer
+  (map! :map (minibuffer-local-map
+              minibuffer-local-ns-map
+              minibuffer-local-completion-map
+              minibuffer-local-must-match-map
+              minibuffer-local-isearch-map
+              evil-ex-completion-map)
+        "<escape>" #'keyboard-escape-quit))
+;; commeting
+(use-package! evil-nerd-commenter
+  :general
+  (general-t (normal visual) 'override "c" #'evilnc-comment-or-uncomment-lines)
+  ('normal "gc" #'evilnc-comment-operator))
+;; (general-t (normal visual) 'override "c" #'evilnc-comment-or-uncomment-lines)
+
+;; evil-lion (I never use)
+;; (use-package! evil-lion
+;;   :general ('normal
+;;             "gl" #'evil-lion-left
+;;             "gL" #'evil-lion-right))
+
+;; conflict with s leader key
+(remove-hook 'doom-first-input-hook #'evil-snipe-mode)
+;; (use-package! evil-snipe
+;;   :general
+;;   ('normal "gf" #'evil-snipe-f)
+;;   ('normal "gF" #'evil-snipe-F))
+
+;; on the first run, define first (motion) to exchange, on second, defind the second (motion) and perform exchange e.g) cxiw - move point - cxaw
+(use-package! evil-exchange
+  :general (js/c-map
+            "x" #'evil-exchange
+            "X" #'evil-exchange-cancel))
+
+;; evil surround
+(use-package! evil-surround
+  :config
+  (map! :map evil-surround-mode-map
+        :v "s" #'evil-surround-region))
+#+end_src
+
+*** global keymapping
+:PROPERTIES:
+:ID:       9d746c58-0d50-44c2-84e0-197f62c826ab
+:END:
+#+begin_src emacs-lisp
+;; this replaces everything no matter what the context is, causing unexpected behavior
+(map! :map general-override-mode-map
+      :n "T" #'+vterm/toggle
+      :n "S" #'magit-status
+      ;; :n "-" #'dired-jump
+      :n "-" #'dirvish-dwim
+      :nivm "C-f"  #'+vertico/search-symbol-at-point)
+(general-def
+  "C-v" #'yank
+  ;; basic settings
+  "C-k" #'evil-scroll-up
+  "C-j" #'evil-scroll-down
+  ;; org mode related
+  "C-c c" #'org-capture
+  "C-c a" #'(lambda() (interactive) (org-agenda nil "c"))
+  "C-c i" #'(lambda() (interactive) (find-file org-default-inbox-file)))
+
+(map! :leader
+      :desc "outline" "i" #'consult-outline
+      (:prefix ("f" . "file")
+       :desc "open file" "f" #'find-file)
+      (:prefix ("q" . "quit")
+       :desc "kill emacs" "k" #'kill-emacs
+       :desc "quit emacs" "q" #'save-buffers-kill-terminal))
+#+end_src
+
+
+** undo-fu
+:PROPERTIES:
+:ID:       08a8a40b-226f-46bf-a626-64e1d4e2db02
+:END:
+not as nice as undo-tree, but stable
+#+begin_src emacs-lisp
+(use-package! undo-fu
+  :general ('normal "u" #'undo-fu-only-undo
+                    "U" #'undo-fu-only-redo))
+#+end_src
+
+
+** flycheck settings
+:PROPERTIES:
+:ID:       b24b429c-27ff-422d-a9bb-08afde12f76f
+:END:
+#+begin_src emacs-lisp
+(after! flycheck
+  (map! :map prog-mode-map
+        :localleader
+        "c" #'consult-flycheck))
+        ;; "f" #'flycheck-list-errors))
+#+end_src
+
+
+** input methods
+#+begin_src emacs-lisp
+(use-package! fcitx
+  :after evil
+  :config
+  (setq! fcitx-use-dbus 'fcitx5)
+  (setq! fcitx-remote-command "fcitx5-remote")
+  (fcitx-evil-turn-on))
+#+end_src
+
+#+begin_src emacs-lisp
+;; (setq! default-input-method "korean-hangul")
+;; (map! :map general-override-mode-map
+;;       :i "C-SPC" #'toggle-input-method)
+;; (global-set-key (kbd "C-SPC") 'toggle-input-method)
+#+end_src
+
+
+* font/theme
+** ewal/pywal
+I really prefer default doom-one theme...
+
+#+begin_src emacs-lisp
+;; (require 'ewal)
+;; (use-package! ewal-doom-themes
+;;   :after ewal
+;;   :config
+;;   (defun ewal-setup (&optional event)
+;;     (progn
+;;       (load-theme 'ewal-doom-one t)
+;;       (enable-theme 'ewal-doom-one)))
+;;   ;; (load-theme 'ewal-doom-vibrant t)
+;;   ;; (enable-theme 'ewal-doom-vibrant)))
+;;   (ewal-setup)
+;;   (require 'filenotify)
+;;   (file-notify-add-watch "~/.cache/wal/colors.json" '(change) #'ewal-setup))
+
+;; (use-package! ewal-evil-cursors
+;;   :after ewal-doom-themes
+;;   :config
+;;   (ewal-evil-cursors-get-colors :apply t))
+#+end_src
+
+** doom fonts
+:PROPERTIES:
+:ID:       a2cc100d-55dd-4e4a-a9f4-0d97304d759a
+:END:
+
+size 를 float 로 설정하면 hidpi setting 을 따르게 된다.
+#+begin_src emacs-lisp
+(setq!
+ doom-font (font-spec :family "Cascadia Code" :size 10.0)
+ ;; doom-font (font-spec :family "Roboto Mono" :size 15)
+ doom-variable-pitch-font (font-spec :family "Source Code Pro")
+ ;; doom-serif-font (font-spec :family "Libre Baskerville")
+ doom-symbol-font (font-spec :family "Source Han Mono K")
+ ;; doom-unicode-font (font-spec :family "NanumBarunGothic")
+ doom-serif-font (font-spec :family "Noto Serif CJK KR")
+ ;; doom-big-font (font-spec :family "Roboto Mono" :size 20)
+ ;; doom-big-font (font-spec :family "Cascadia Code" :size 20.0)
+ doom-theme 'doom-one)
+;; doom-theme 'ewal-doom-vibrant)
+
+;; (add-hook! 'doom-load-theme-hook :append
+;;            ;; (set-fontset-font t 'hangul (font-spec :family "NanumBarunGothic"))
+;;            (if (> (display-pixel-width) 3800)
+;;                (doom-big-font-mode)))
+#+end_src
+
+
+* language support
+** spell check
+*** ispell
+#+begin_src emacs-lisp
+(use-package! ispell
+  :general (general-r "r" #'+spell/correct)
+  :config
+  (setq! ispell-dictionary "en")
+  (setq! ispell-personal-dictionary "~/.aspell.en.pws")
+  (setq! ispell-extra-args
+         '("--sug-mode=ultra" "--lang=en_US" "--camel-case")))
+#+end_src
+
+*** spell-fu
+#+begin_src emacs-lisp
+(use-package! spell-fu
+  :after ispell
+  ;; add word to whitelist (that I know it's not typo)
+  :general (general-r "s" #'+spell/add-word
+             "d" #'+spell/remove-word)
+  :config
+  (setq! spell-fu-idle-delay 0.5))
+#+end_src
+
+** language tool
+consults grammatical error
+#+begin_src emacs-lisp
+(after! langtool
+  (general-r "g" #'langtool-correct-buffer))
+#+end_src
+
+
+* helper utilities
+makes life much easier
+
+** auto saving
+:PROPERTIES:
+:ID:       c1274c59-ee89-40e3-b1e8-badbb2e67c1d
+:END:
+#+begin_src emacs-lisp
+(setq! auto-save-interval 30
+      auto-save-timeout 5
+      ;; don't create auto-save ~ files
+      auto-save-default nil)
+
+(defun js/save ()
+  "If in a file buffer and not executing/recording a macro, save."
+  (when (and (buffer-file-name)
+             (not (or executing-kbd-macro defining-kbd-macro)))
+    (let ((inhibit-message t))
+      (save-buffer))))
+
+;; save whenever evil exists insert mode
+;; deprecated since it causes serious lag when using doom emacs
+;; (add-hook! 'evil-insert-state-exit-hook #'js/save)
+
+(auto-save-visited-mode)
+#+end_src
+
+** navigation helpers
+
+*** quick search engines
+:PROPERTIES:
+:ID:       6bbe4d08-2718-4de7-a2de-98dfaaf7687e
+:END:
+#+begin_src emacs-lisp
+(general-s
+  "s" #'+lookup/online
+  "S" #'+lookup/online-select)
+#+end_src
+
+
+*** avy
+:PROPERTIES:
+:ID:       b8292777-c61f-49ad-9bc8-eb1889df34fa
+:END:
+#+begin_src emacs-lisp
+(after! avy
+  ;; do not ignore case when searching
+  (setq! avy-case-fold-search nil)
+  (general-r
+    "a" #'avy-goto-char
+    "A" #'avy-goto-char-2))
+#+end_src
+
+*** helm
+:PROPERTIES:
+:ID:       8541b785-7a57-4b6e-99d5-b876accadc80
+:END:
+#+begin_src emacs-lisp
+(map! :after helm
+      :map helm-find
+      "C-j" #'helm-next-line
+      "C-k" #'helm-previous-line)
+#+end_src
+
+
+*** vertico
+:PROPERTIES:
+:ID:       829d255e-c653-4450-aa1f-15f5ba6d7d5c
+:END:
+#+begin_src emacs-lisp
+(use-package! vertico
+  :init
+  (vertico-mode)
+  :config
+  (map! :map vertico-map
+        "C-y" #'vertico-save
+        "C-j" #'vertico-next
+        "C-k" #'vertico-previous
+        "C-SPC" #'toggle-input-method
+        "C-<return>" #'vertico-exit-input)
+  (map! :leader
+        :desc "M-x" "SPC" #'execute-extended-command
+        ;; :desc "project-find-file" "p" #'(lambda () (interactive) (project-find-file '(4)))
+        :desc "project-find-file" "p" #'projectile-find-file
+        :desc "project-switch-project" "c" #'projectile-switch-project
+        :desc "search within project" "/" #'+default/search-project
+        ;; :desc "search within project" "/" #'consult-git-grep
+        :desc "resume last search" "'" #'vertico-repeat))
+#+end_src
+
+
+*** consult
+:PROPERTIES:
+:ID:       3d55af96-c2d3-4619-bcb8-a1ef53220a81
+:END:
+#+begin_src emacs-lisp
+(use-package! consult
+  :defer 1
+  :general
+  (general-t "p" #'consult-yank-from-kill-ring)
+  ('normal "/" #'consult-line)
+  :config
+  (map!
+   ;; :m "'" #'consult-global-mark
+   :leader
+   :desc "switch buffer" "s" #'consult-buffer
+   :desc "locate file" "l" #'consult-locate)
+  (setq! consult-project-function #'consult--default-project-function)
+  (defun js/consult-line-evil-history (&rest _)
+    "Add latest `consult-line' search pattern to the evil search history ring."
+    (when (and (bound-and-true-p evil-mode)
+               (eq evil-search-module 'evil-search))
+      (let ((pattern (car (orderless-pattern-compiler
+                           (car consult--line-history)))))
+        (add-to-history 'evil-ex-search-history pattern)
+        (setq! evil-ex-search-pattern (list pattern t t))
+        (setq! evil-ex-search-direction 'forward)
+        (when evil-ex-search-persistent-highlight
+          (evil-ex-search-activate-highlight evil-ex-search-pattern)))))
+  (general-add-advice #'consult-line :after #'js/consult-line-evil-history))
+#+end_src
+
+
+*** quickmarks
+:PROPERTIES:
+:ID:       d77012c5-773c-4ffa-96ec-22d703d20cf8
+:END:
+#+begin_src emacs-lisp
+(general-comma
+  "S" #'doom/open-scratch-buffer
+  "e" '(lambda () (interactive) (find-file "/home/jisoo/.config/doom/config.org"))
+  "p" '(lambda () (interactive) (find-file (expand-file-name "projects.org" org-directory)))
+  "t" '(lambda () (interactive) (find-file (expand-file-name "tickler.org" org-directory)))
+  "i" '(lambda () (interactive) (find-file (expand-file-name "inbox.org" org-directory)))
+  "n" '(lambda () (interactive) (find-file (expand-file-name "notes.org" org-directory)))
+  "z" '(lambda () (interactive) (find-file "~/.zshrc")))
+#+end_src
+
+*** link-hint
+:PROPERTIES:
+:ID:       9a17a621-8572-43ff-a81c-4576f31f17bd
+:END:
+#+begin_src emacs-lisp
+(use-package! link-hint
+  :general
+  (general-t
+    "y" #'link-hint-copy-link
+    "f" #'link-hint-open-link
+    "F" #'link-hint-open-multiple-links))
+#+end_src
+
+*** browse-at-remote
+:PROPERTIES:
+:ID:       f7e1efcd-bad0-4948-beac-a6027028fff0
+:END:
+#+begin_src emacs-lisp
+(use-package! browse-at-remote
+  :general
+  (general-t
+    "RET" #'browse-at-remote))
+
+(setq! browse-url-generic-program (getenv "BROWSER")
+      browse-url-browser-function #'browse-url-generic)
+#+end_src
+
+** editing
+
+*** show parenthesis
+:PROPERTIES:
+:ID:       49d3b134-7ea6-4c5f-a694-08833ef02f95
+:END:
+
+#+begin_src emacs-lisp
+(use-package paren
+  :init
+  (show-paren-mode)
+  :config
+  (setq! show-paren-delay 0))
+#+end_src
+
+
+*** aggressive indent
+:PROPERTIES:
+:ID:       c68fb6ee-4383-4614-82eb-4f0772b8d618
+:END:
+#+begin_src emacs-lisp
+(use-package! aggressive-indent
+  :config
+  (electric-indent-mode -1)
+  (global-aggressive-indent-mode)
+  ;; general-pushnew do not add value if value already contained in list
+  (general-pushnew 'python-mode aggressive-indent-excluded-modes)
+  ;; jupyter-repl-mode also causes probe when aggressive-indent-mode enabled
+  (general-pushnew 'jupyter-repl-mode aggressive-indent-excluded-modes)
+  (general-def js/toggle-map "a" #'aggressive-indent-mode))
+#+end_src
+
+
+*** sudo editing
+:PROPERTIES:
+:ID:       a025d4ff-44cc-421f-b633-13f39249dca6
+:END:
+#+begin_src emacs-lisp
+(defun js/maybe-sudo-edit ()
+  "If the current file is exists and is unwritable, edit it as root with sudo."
+  (interactive)
+  (let* ((file buffer-file-name)
+         (parent (file-name-directory file))
+         ;; don't try to lookup password with auth-source
+         auth-sources)
+    (when (and file
+               (not (file-writable-p file))
+               (or (file-exists-p file)
+                   ;; might want to create a file
+                   (and (file-exists-p parent)
+                        (not (file-writable-p parent))))
+               ;; don't want to edit Emacs source files as root
+               (not (string-match "/usr/share/emacs/.*" file)))
+      (find-file (concat "/sudo:root@localhost:" file)))))
+(map! :leader
+      (:prefix ("f" . "file")
+       :desc "sudo edit" "u" #'js/maybe-sudo-edit))
+#+end_src
+
+*** company
+:PROPERTIES:
+:ID:       ab964b9e-3118-40ed-9616-3e6cce0f7e12
+:END:
+#+begin_src emacs-lisp
+(use-package! company
+  :config
+  (setq! company-idle-delay 0.2
+         company-minimum-prefix-length 1)
+  (general-def js/toggle-map "c" #'company-mode)
+  (map! :map company-active-map
+        "C-j" #'company-select-next
+        "C-k" #'company-select-previous
+        "C-t" #'company-yasnippet
+        "<tab>" #'company-complete-common-or-cycle
+        "<backtab>" #'company-select-previous
+        "<escape>" #'company-abort
+        "C-h" #'company-show-doc-buffer
+        "C-d" #'company-next-page
+        "C-u" #'company-previous-page
+        "C-s" #'company-filter-candidates
+        :map company-search-map
+        "C-j" #'company-select-next-or-abort
+        "C-k" #'company-select-previous-or-abort
+        "C-s" #'company-filter-candidates
+        "<escape>" #'company-search-abort))
+#+end_src
+
+
+*** anzu
+:PROPERTIES:
+:ID:       a303163b-db77-485d-9be7-746c73d0e272
+:END:
+#+begin_src emacs-lisp
+(use-package! anzu
+  :config
+  (map! :leader
+        :desc "anzu-query-replace-regexp" "a" #'anzu-query-replace-regexp)
+  (map!
+   :niv "C-r" #'anzu-replace-at-cursor-thing)
+  (global-anzu-mode))
+#+end_src
+
+
+** save hist
+:PROPERTIES:
+:ID:       9e3cd4e9-23e2-4586-9a20-ae6090a97fc6
+:END:
+#+begin_src emacs-lisp
+(setq! history-delete-duplicates t
+      kill-ring-max 200
+      history-length 1000
+      savehist-autosave-interval 60)
+#+end_src
+
+** help mode
+:PROPERTIES:
+:ID:       e441d903-7688-484b-a3de-7c69faa9bd26
+:END:
+#+begin_src emacs-lisp
+(after! help-mode
+  (map! :leader
+        (:prefix ("h" . "help")
+         :desc "helpful-at-point" "h" #'helpful-at-point
+         :desc "consult-apropos" "a" #'consult-apropos
+         :desc "describe variable" "v" #'describe-variable
+         :desc "describe function" "f" #'describe-function
+         :desc "yasnippet table" "y" #'yas-describe-tables
+         :desc "which key" "k" #'helpful-key)))
+#+end_src
+
+* some visual add-on
+
+** beacon
+:PROPERTIES:
+:ID:       0eac9837-add9-4a9a-bf58-88e14cfa4b9e
+:END:
+I like this better than =nav-flash= that doom emacs provide
+#+begin_src emacs-lisp
+(use-package! beacon
+  :config
+  (setq! beacon-blink-when-window-scrolls nil
+        beacon-blink-when-focused t
+        beacon-color "deep sky blue"
+        beacon-blink-duration 0.3)
+  (beacon-mode 1))
+#+end_src
+
+** visual fill column
+:PROPERTIES:
+:ID:       dd486b78-6914-43c6-be49-ba8725397bc4
+:END:
+#+begin_src emacs-lisp
+(use-package! visual-fill-column
+  :hook (text-mode . visual-fill-column-mode)
+  :init (setq! visual-fill-column-width 100
+               visual-fill-column-center-text t)
+  :config
+  (general-def js/toggle-map "V" #'visual-fill-column-mode))
+#+end_src
+
+** visual line mode
+:PROPERTIES:
+:ID:       e8beaa04-238b-48b7-a6b0-71f47e06a34a
+:END:
+#+begin_src emacs-lisp
+(add-hook! 'text-mode-hook #'visual-line-mode)
+(setq! visual-line-fringe-indicators '(nil right-curly-arrow))
+(general-def js/toggle-map "v" #'visual-line-mode)
+#+end_src
+
+** adaptive wrap
+I can't use org mode headline search if I enable this package.
+#+begin_src emacs-lisp
+(use-package! adaptive-wrap
+  :disabled t
+  :general (general-def js/toggle-map "A" #'adaptive-wrap-prefix-mode)
+  :config
+  (add-hook! 'text-mode-hook #'adaptive-wrap-prefix-mode))
+#+end_src
+
+* Org
+** configurations
+*** default variables
+:PROPERTIES:
+:ID:       d7b1188f-f1d9-4109-bd9d-48b1227dacc8
+:END:
+#+begin_src emacs-lisp
+(defvar org-default-inbox-file (expand-file-name "inbox.org" org-directory))
+(defvar org-default-projects-file (expand-file-name "projects.org" org-directory))
+(defvar org-default-tickler-file (expand-file-name "tickler.org" org-directory))
+(defvar org-default-incubate-file (expand-file-name "incubate.org" org-directory))
+(defvar org-anki-file (expand-file-name "anki.org" org-directory))
+#+end_src
+
+*** basic configs
+:PROPERTIES:
+:ID:       7200a867-d4c8-4ada-be23-b60d666bcfe0
+:END:
+#+begin_src emacs-lisp
+(setq! org-return-follows-link t
+      org-catch-invisible-edits 'error
+      org-imenu-depth 3
+      org-log-done 'time
+      org-startup-with-latex-preview nil
+      org-edit-src-content-indentation 0
+      org-time-stamp-rounding-minutes '(1 1)
+      org-archive-location "%s_archive::* Archived Tasks")
+
+(add-hook! 'org-mode-hook (lambda () (display-line-numbers-mode 0)))
+#+end_src
+
+*** latex preview
+:PROPERTIES:
+:ID:       0d2a6562-7686-419e-88ca-fe27d73c23b3
+:END:
+#+begin_src emacs-lisp
+(defun org-latex-preview-toggle-background ()
+  "Toggle the background of latex fragments."
+  (interactive)
+  (let ((background (plist-get org-format-latex-options ':background)))
+    (cond ((equal background 'default)
+           (progn
+             (plist-put org-format-latex-options ':background "White")
+             (plist-put org-format-latex-options ':foreground "Black")))
+          ((equal background "White")
+           (plist-put org-format-latex-options ':background 'default)
+           (plist-put org-format-latex-options ':foreground 'default))
+          (t nil))))
+
+(defun org-preview-clear-cache ()
+  "Clear the latex images in the cache directory."
+  (interactive)
+  (let ((preview-cache
+         (f-join default-directory org-preview-latex-image-directory)))
+    (if (f-directory? preview-cache)
+        (f-delete preview-cache t)
+      (message "%s" "Directory 'ltximg' does not exist."))))
+#+end_src
+
+*** structure templates
+:PROPERTIES:
+:ID:       a0cd1d26-7c95-4010-959f-efa4c0bc9172
+:END:
+#+begin_src emacs-lisp
+(after! org
+  (setq! org-structure-template-alist
+        '(("p" . "src jupyter-python")))
+  (add-to-list 'org-structure-template-alist
+               '("y" . "src yaml"))
+  (add-to-list 'org-structure-template-alist
+               '("s" . "src shell"))
+  (add-to-list 'org-structure-template-alist
+               '("R" . "src restclient"))
+  (add-to-list 'org-structure-template-alist
+               '("r" . "src jupyter-R"))
+  (add-to-list 'org-structure-template-alist
+               '("l" . "src latex"))
+  (add-to-list 'org-structure-template-alist
+               '("e" . "src emacs-lisp"))
+  (add-to-list 'org-structure-template-alist
+               '("q" . "src sql"))
+  (add-to-list 'org-structure-template-alist
+               '("j" . "src js"))
+  (add-to-list 'org-structure-template-alist
+               '("h" . "src haskell"))
+  (add-to-list 'org-structure-template-alist
+               '("E" . "example")))
+#+end_src
+
+*** todo keywords
+:PROPERTIES:
+:ID:       1e21e598-2739-4416-9582-c6575b53fe6d
+:END:
+#+begin_src emacs-lisp
+(after! org
+  (setq! org-todo-keywords
+        '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")
+          (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "CANCELED(c@/!)")))
+  (setq! org-todo-keyword-faces
+        '(("TODO" . (:foreground "red" :weight bold))
+          ("NEXT" . (:foreground "aqua" :weight bold))
+          ("DONE" . (:foreground "forest green" :weight bold))
+          ("WAITING" . (:foreground "orange" :weight bold))
+          ("HOLD" . (:foreground "magenta" :weight bold))
+          ("CANCELED" . (:foreground "forest green" :weight bold)))))
+#+end_src
+
+*** refile targets
+:PROPERTIES:
+:ID:       1fdb525a-d9b6-4ea7-814f-345bb55f8c86
+:END:
+#+begin_src emacs-lisp
+(after! org
+  (setq! org-refile-targets
+         '((org-default-incubate-file :level . 1)
+           (org-default-projects-file :maxlevel . 3)
+           (org-default-tickler-file :maxlevel . 2))))
+#+end_src
+
+*** capture templates
+:PROPERTIES:
+:ID:       24145334-dece-47f2-9e43-6b3a6595910d
+:END:
+#+begin_src emacs-lisp
+(after! org
+  (setq! org-capture-templates
+         `(("t" "Task Entry" entry
+            (file org-default-inbox-file)
+            ,(concat "* TODO %?\n"
+                     ":PROPERTIES:\n"
+                     ":CREATED: %U\n"
+                     ":END:\n"
+                     "  %i")
+            :empty-lines 1)
+           ("m" "Meeting" entry (file+headline org-default-tickler-file "Future")
+            ,(concat "* %? :meeting:\n"
+                     "<%<%Y-%m-%d %a %H:00>>"))
+           ("n" "Note" entry (file org-default-notes-file)
+            ,(concat "* Note (%a)\n"
+                     "\Entered on %U\n" "\n" "%?"))
+           ("h" "Habit" entry
+            (file org-default-tickler-file)
+            ,(concat "* NEXT %?\n"
+                     "SCHEDULED: %(format-time-string \"%<<%Y-%m-%d %a .+1d/3d>>\")\n"
+                     ":PROPERTIES:\n"
+                     ":CREATED: %U\n"
+                     ":STYLE: habit\n"
+                     ":REPEAT_TO_STATE: NEXT\n"
+                     ":END:\n")))))
+#+end_src
+
+*** org-habit
+:PROPERTIES:
+:ID:       8a651bc6-1819-4d65-8d1e-01382919dc0f
+:END:
+#+begin_src emacs-lisp
+(after! org
+  (require 'org-habit)
+  ;; (add-to-list 'org-modules 'org-habit)
+  (setq! org-habit-show-habits-only-for-today nil
+        org-agenda-start-day "-0d"))
+#+end_src
+
+*** refile helper functions
+:PROPERTIES:
+:ID:       ed9100d3-5c31-4b0c-9d01-23dd66436ac0
+:END:
+#+begin_src emacs-lisp
+(defun org-subtree-region ()
+  "Select subtree regions."
+  (save-excursion
+    (list (progn (org-back-to-heading) (point))
+          (progn (org-end-of-subtree) (point)))))
+
+(defun org-refile-directly (file-dest)
+  "Refile headline to file named 'FILE-DEST'."
+  (interactive "fDestination:")
+
+  (defun dump-it (contents)
+    (find-file-other-window file-dest)
+    (goto-char (point-max))
+    (insert "\n" contents))
+
+  (save-excursion
+    (let* ((region (org-subtree-region))
+           (contents (buffer-substring (first region) (second region))))
+      (apply 'kill-region region)
+      (save-window-excursion (dump-it contents)))))
+
+(defun org-refile-to-incubate ()
+  "Refile to incubate file."
+  (interactive)
+  (org-refile-directly org-default-incubate-file))
+
+(defun org-refile-to-projects ()
+  "Refile to projects file."
+  (interactive)
+  (org-refile-directly org-default-projects-file))
+
+(defun org-refile-to-tickler ()
+  "Refile to tickler file."
+  (interactive)
+  (org-refile-directly org-default-tickler-file))
+
+(defhydra hydra-org-refiler (:color amaranth :hint nil)
+  "
+  ^Navigate^       ^Refile^
+  ^^^^^^^^^^---------------------------------------------------------------------------------------
+  _k_: ↑ previous _p_: projects
+  _j_: ↓ next     _i_: incubate
+  _a_: archive     _t_: tickler
+  _d_: delete      _r_: refile
+  "
+  ("k" org-previous-visible-heading)
+  ("j" org-next-visible-heading)
+  ("a" org-archive-subtree-default-with-confirmation)
+  ("d" org-cut-subtree)
+  ("p" org-refile-to-projects)
+  ("i" org-refile-to-incubate)
+  ("t" org-refile-to-tickler)
+  ("r" org-refile)
+  ("<escape>" nil)
+  ("q" nil "quit"))
+#+end_src
+
+** org agenda
+
+*** org-agenda keybinding
+:PROPERTIES:
+:ID:       b9ea74c0-6cd1-48cb-a1a1-e0bcbf9f2721
+:END:
+#+begin_src emacs-lisp
+;; get rid of evil-org-agenda
+(set-evil-initial-state! 'org-agenda-mode 'normal)
+(remove-hook! 'org-agenda-mode-hook #'evil-org-agenda-mode)
+
+(after! org-agenda
+  (setq! org-agenda-dim-blocked-tasks nil
+         org-agenda-span 'day)
+  (map! :map org-agenda-mode-map
+        :n "C-j" #'evil-scroll-down
+        :n "C-k" #'evil-scroll-up
+        :n "M-j" #'org-agenda-later
+        :n "M-k" #'org-agenda-earlier
+        :n "<tab>" #'org-agenda-goto
+        :n "<return>" #'org-agenda-switch-to
+        :n "z" #'org-agenda-view-mode-dispatch
+        :n "A" #'org-agenda-archive-default-with-confirmation
+        :n "L" #'org-agenda-log-mode
+        :n "q" #'org-agenda-quit
+        :n "K" #'org-clock-convenience-timestamp-up
+        :n "J" #'org-clock-convenience-timestamp-down
+        :localleader
+        (:prefix ("t" . "task")
+         :desc "set todo" "t" #'org-agenda-todo
+         :desc "set priority" "p" #'org-agenda-priority
+         :desc "set schedule" "s" #'org-agenda-schedule)
+        (:prefix ("c" . "clock")
+         :desc "clock in" "i" #'org-agenda-clock-in
+         :desc "clock out" "o" #'org-agenda-clock-out
+         :desc "pomodoro" "p" #'org-pomodoro)))
+#+end_src
+
+*** custom agenda
+:PROPERTIES:
+:ID:       2a2f736e-8a6b-4963-8428-6541d98a5d25
+:END:
+#+begin_src emacs-lisp
+(after! org-agenda
+  (setq! org-agenda-files (cons org-default-projects-file '())
+         ;; I hate this option but necessary for speed up
+         org-agenda-block-separator " "
+         org-agenda-start-with-log-mode t)
+  (add-to-list 'org-agenda-files org-default-inbox-file)
+  (add-to-list 'org-agenda-files org-default-tickler-file)
+  (add-to-list 'org-agenda-files (expand-file-name "inbox_m.org" org-directory))
+
+  (setq! org-agenda-custom-commands
+         '(("h" "Habits" tags-todo "STYLE=\"habit\""
+            ((org-agenda-overriding-header "Habits")
+             (org-agenda-sorting-strategy
+              '(todo-state-down effort-up category-keep))))
+           ("c" "Agenda"
+            ((agenda ""
+                     ((org-agenda-span 4)
+                      (org-agenda-start-day "-1d")
+                      (org-agenda-remove-tags t)
+                      (org-agenda-skip-timestamp-if-done t)
+                      (org-agenda-skip-deadline-if-done t)
+                      (org-agenda-current-time-string "ᐊ┈┈┈┈┈┈┈ Now")))
+             ;; (org-agenda-time-grid (quote ((today require-timed remove-match) () "      " "┈┈┈┈┈┈┈┈┈┈┈┈┈")))))
+             (tags "REFILE"
+                   ((org-agenda-overriding-header "Tasks to Refile")
+                    (org-tags-match-list-sublevels nil)))
+             (tags-todo "-CANCELLED/!"
+                        ((org-agenda-overriding-header "Stuck Projects")
+                         (org-agenda-skip-function 'js/skip-non-stuck-projects)
+                         (org-agenda-sorting-strategy
+                          '(category-keep))))
+             (tags-todo "-CANCELLED/!"
+                        ((org-agenda-overriding-header "Projects")
+                         (org-agenda-skip-function 'js/skip-non-projects)
+                         (org-tags-match-list-sublevels 'indented)
+                         (org-agenda-sorting-strategy
+                          '(category-keep))))
+             (tags-todo "-CANCELLED/!NEXT"
+                        ((org-agenda-overriding-header (concat "Project Next Tasks"
+                                                               (if js/hide-scheduled-and-waiting-next-task
+                                                                   ""
+                                                                 " (including WAITING and SCHEDULED tasks)")))
+                         (org-agenda-skip-function 'js/skip-projects-and-habits-and-single-tasks)
+                         (org-tags-match-list-sublevels t)
+                         (org-agenda-todo-ignore-scheduled js/hide-scheduled-and-waiting-next-task)
+                         (org-agenda-todo-ignore-deadlines js/hide-scheduled-and-waiting-next-task)
+                         (org-agenda-todo-ignore-with-date js/hide-scheduled-and-waiting-next-task)
+                         (org-agenda-sorting-strategy
+                          '(todo-state-down effort-up category-keep))))
+             (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!"
+                        ((org-agenda-overriding-header (concat "Project Subtasks"
+                                                               (if js/hide-scheduled-and-waiting-next-task
+                                                                   ""
+                                                                 " (including WAITING and SCHEDULED tasks)")))
+                         (org-agenda-skip-function 'js/skip-non-project-tasks)
+                         (org-agenda-todo-ignore-scheduled js/hide-scheduled-and-waiting-next-task)
+                         (org-agenda-todo-ignore-deadlines js/hide-scheduled-and-waiting-next-task)
+                         (org-agenda-todo-ignore-with-date js/hide-scheduled-and-waiting-next-task)
+                         (org-agenda-sorting-strategy
+                          '(category-keep))))
+             (tags-todo "-REFILE-CANCELLED-WAITING-HOLD/!"
+                        ((org-agenda-overriding-header (concat "Standalone Tasks"
+                                                               (if js/hide-scheduled-and-waiting-next-task
+                                                                   ""
+                                                                 " (including WAITING and SCHEDULED tasks)")))
+                         (org-agenda-skip-function 'js/skip-project-tasks)
+                         (org-agenda-files (remove org-default-tickler-file org-agenda-files))
+                         (org-agenda-todo-ignore-scheduled js/hide-scheduled-and-waiting-next-task)
+                         (org-agenda-todo-ignore-deadlines js/hide-scheduled-and-waiting-next-task)
+                         (org-agenda-todo-ignore-with-date js/hide-scheduled-and-waiting-next-task)
+                         (org-agenda-sorting-strategy
+                          '(category-keep))))
+             (tags-todo "-CANCELLED+WAITING|HOLD/!"
+                        ((org-agenda-overriding-header (concat "Waiting and Postponed Tasks"
+                                                               (if js/hide-scheduled-and-waiting-next-task
+                                                                   ""
+                                                                 " (including WAITING and SCHEDULED tasks)")))
+                         (org-agenda-skip-function 'js/skip-non-tasks)
+                         (org-tags-match-list-sublevels nil)
+                         (org-agenda-todo-ignore-scheduled js/hide-scheduled-and-waiting-next-task)
+                         (org-agenda-todo-ignore-deadlines js/hide-scheduled-and-waiting-next-task)))
+             (tags "-REFILE/"
+                   ((org-agenda-overriding-header "Tasks to Archive")
+                    (org-agenda-skip-function 'js/skip-non-archivable-tasks)
+                    (org-tags-match-list-sublevels nil))))
+            nil))))
+#+end_src
+
+
+*** org-agenda helper functions
+:PROPERTIES:
+:ID:       d21e4a21-03e0-42b3-9bac-778873555751
+:END:
+#+begin_src emacs-lisp
+(defun js/is-project-p ()
+  "Any task with a todo keyword subtask."
+  (save-restriction
+    (widen)
+    (let ((has-subtask)
+          (subtree-end (save-excursion (org-end-of-subtree t)))
+          (is-a-task (member (nth 2 (org-heading-components)) org-todo-keywords-1)))
+      (save-excursion
+        (forward-line 1)
+        (while (and (not has-subtask)
+                    (< (point) subtree-end)
+                    (re-search-forward "^\*+ " subtree-end t))
+          (when (member (org-get-todo-state) org-todo-keywords-1)
+            (setq has-subtask t))))
+      (and is-a-task has-subtask))))
+
+(defun js/find-project-task ()
+  "Move point to the parent task (project) if any."
+  (save-restriction
+    (widen)
+    (let ((parent-task (save-excursion (org-back-to-heading 'invisible-ok) (point))))
+      (while (org-up-heading-safe)
+        (when (member (nth 2 (org-heading-components)) org-todo-keywords-1)
+          (setq parent-task (point))))
+      (goto-char parent-task)
+      parent-task)))
+
+(defun js/is-project-subtree-p ()
+  "Any task with a todo keyword that is in a project subtree."
+  (let ((task (save-excursion (org-back-to-heading 'invisible-ok)
+                              (point))))
+    (save-excursion
+      (js/find-project-task)
+      (if (equal (point) task)
+          nil
+        t))))
+
+(defun js/is-task-p ()
+  "Any task with a todo keyword and no subtask."
+  (save-restriction
+    (widen)
+    (let ((has-subtask)
+          (subtree-end (save-excursion (org-end-of-subtree t)))
+          (is-a-task (member (nth 2 (org-heading-components)) org-todo-keywords-1)))
+      (save-excursion
+        (forward-line 1)
+        (while (and (not has-subtask)
+                    (< (point) subtree-end)
+                    (re-search-forward "^\*+ " subtree-end t))
+          (when (member (org-get-todo-state) org-todo-keywords-1)
+            (setq has-subtask t))))
+      (and is-a-task (not has-subtask)))))
+
+(defun js/list-sublevels-for-projects-indented ()
+  "Set `org-tags-match-list-sublevels' so when restricted to a subtree we list all subtasks.
+This is normally used by skipping functions where this variable is already local to the agenda."
+  (if (marker-buffer org-agenda-restrict-begin)
+      (setq org-tags-match-list-sublevels 'indented)
+    (setq org-tags-match-list-sublevels nil))
+  nil)
+
+(defvar js/hide-scheduled-and-waiting-next-task t)
+
+(defun js/toggle-next-task-display ()
+  (interactive)
+  (setq js/hide-scheduled-and-waiting-next-task (not js/hide-scheduled-and-waiting-next-task))
+  (when (equal major-mode 'org-agenda-mode)
+    (org-agenda-redo))
+  (message "%s WAITING and SCHEDULED NEXT tasks" (if js/hide-scheduled-and-waiting-next-task "Hide" "Show")))
+
+(defun js/skip-stuck-projects ()
+  "Skip trees that are stuck projects."
+  (save-restriction
+    (widen)
+    (let ((next-headline (save-excursion (or (outline-next-heading) (point-max)))))
+      (if (js/is-project-p)
+          (let* ((subtree-end (save-excursion (org-end-of-subtree t)))
+                 (has-next ))
+            (save-excursion
+              (forward-line 1)
+              (while (and (not has-next) (< (point) subtree-end) (re-search-forward "^\\*+ NEXT " subtree-end t))
+                (unless (member "WAITING" (org-get-tags-at))
+                  (setq has-next t))))
+            (if has-next
+                nil
+              next-headline)) ;a stuck project, has subtasks but no next task
+        nil))))
+
+(defun js/skip-non-stuck-projects ()
+  "Skip trees that are not stuck projects."
+  (save-restriction
+    (widen)
+    (let ((next-headline (save-excursion (or (outline-next-heading) (point-max)))))
+      (if (js/is-project-p)
+          (let* ((subtree-end (save-excursion (org-end-of-subtree t)))
+                 (has-next ))
+            (save-excursion
+              (forward-line 1)
+              (while (and (not has-next) (< (point) subtree-end) (re-search-forward "^\\*+ NEXT " subtree-end t))
+                (unless (member "WAITING" (org-get-tags-at))
+                  (setq has-next t))))
+            (if has-next
+                next-headline
+              nil)) ; a stuck project, has subtasks but no next task
+        next-headline))))
+
+(defun js/skip-non-projects ()
+  "Skip trees that are not projects."
+  (if (save-excursion (js/skip-non-stuck-projects))
+      (save-restriction
+        (widen)
+        (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+          (cond
+           ((js/is-project-p)
+            nil)
+           ((and (js/is-project-subtree-p) (not (js/is-task-p)))
+            nil)
+           (t
+            subtree-end))))
+    (save-excursion (org-end-of-subtree t))))
+
+(defun js/skip-non-tasks ()
+  "Show non-project tasks."
+  (save-restriction
+    (widen)
+    (let ((next-headline (save-excursion (or (outline-next-heading) (point-max)))))
+      (cond
+       ((js/is-task-p)
+        nil)
+       (t
+        next-headline)))))
+
+(defun js/skip-project-trees-and-habits ()
+  "Skip trees that are projects"
+  (save-restriction
+    (widen)
+    (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+      (cond
+       ((js/is-project-p)
+        subtree-end)
+       ((org-is-habit-p)
+        subtree-end)
+       (t
+        nil)))))
+
+(defun js/skip-projects-and-habits-and-single-tasks ()
+  "Skip trees that are projects, tasks that are habits, single non-project tasks."
+  (save-restriction
+    (widen)
+    (let ((next-headline (save-excursion (or (outline-next-heading) (point-max)))))
+      (cond
+       ((org-is-habit-p)
+        next-headline)
+       ((and js/hide-scheduled-and-waiting-next-task
+             (member "WAITING" (org-get-tags-at)))
+        next-headline)
+       ((js/is-project-p)
+        next-headline)
+       ((and (js/is-task-p) (not (js/is-project-subtree-p)))
+        next-headline)
+       (t
+        nil)))))
+
+(defun js/skip-project-tasks-maybe ()
+  "Show tasks related to the current restriction."
+  (save-restriction
+    (widen)
+    (cl-letf ((subtree-end (save-excursion (org-end-of-subtree t)))
+              (next-headline (save-excursion (or (outline-next-heading) (point-max))))
+              (limit-to-project (marker-buffer org-agenda-restrict-begin)))
+      (cond
+       ((js/is-project-p)
+        next-headline)
+       ((org-is-habit-p)
+        subtree-end)
+       ((and (not limit-to-project
+                  (js/is-project-subtree-p)
+                  (member (org-get-todo-state) (list "NEXT")))
+             subtree-end)
+        (t
+         nil))))))
+
+(defun js/skip-project-tasks ()
+  "Show non-project tasks."
+  (save-restriction
+    (widen)
+    (let* ((subtree-end (save-excursion (org-end-of-subtree t))))
+      (cond
+       ((js/is-project-p)
+        subtree-end)
+       ((org-is-habit-p)
+        subtree-end)
+       ((js/is-project-subtree-p)
+        subtree-end)
+       (t
+        nil)))))
+
+(defun js/skip-non-project-tasks ()
+  "Show project tasks."
+  (save-restriction
+    (widen)
+    (let* ((subtree-end (save-excursion (org-end-of-subtree t)))
+           (next-headline (save-excursion (or (outline-next-heading) (point-max)))))
+      (cond
+       ((js/is-project-p)
+        next-headline)
+       ((org-is-habit-p)
+        subtree-end)
+       ((and (js/is-project-subtree-p)
+             (member (org-get-todo-state) (list "NEXT")))
+        subtree-end)
+       ((not (js/is-project-subtree-p))
+        subtree-end)
+       (t
+        nil)))))
+
+(defun js/skip-projects-and-habits ()
+  "Skip trees that are project ands tasks that are habits."
+  (save-restriction
+    (widen)
+    (let ((subtree-end (save-excursion (org-end-of-subtree t))))
+      (cond
+       ((js/is-project-p)
+        subtree-end)
+       ((org-is-habit-p)
+        subtree-end)
+       (t
+        nil)))))
+
+(defun js/skip-non-subprojects ()
+  "Skip trees that are not projects."
+  (let ((next-headline (save-excursion (outline-next-heading))))
+    (if (js/is-subproject-p)
+        nil
+      next-headline)))
+
+(defun js/skip-non-archivable-tasks ()
+  "Skip trees that are not available for archiving."
+  (save-restriction
+    (widen)
+    (let ((next-headline (save-excursion (or (outline-next-heading) (point-max))))
+          (subtree-end (save-excursion (org-end-of-subtree t))))
+      (if (member (org-get-todo-state) org-todo-keywords-1)
+          (if (member (org-get-todo-state) org-done-keywords)
+              (let* ((daynr (string-to-number (format-time-string "%d" (current-time))))
+                     (a-month-ago (* 60 60 24 (+ daynr 1)))
+                     (last-month (format-time-string "%Y-%m-" (time-subtract (current-time) (seconds-to-time a-month-ago))))
+                     (this-month (format-time-string "%Y-%m-" (current-time)))
+                     (subtree-is-current (save-excursion
+                                           (forward-line 1)
+                                           (and (< (point) subtree-end)
+                                                (re-search-forward (concat last-month "\\|" this-month) subtree-end t)))))
+                (if subtree-is-current
+                    subtree-end
+                  nil))
+            (or subtree-end (point-max)))
+        next-headline))))
+#+end_src
+
+** org clock
+:PROPERTIES:
+:ID:       ab38b189-cb7b-4ad4-8acd-f48495193f8c
+:END:
+#+begin_src emacs-lisp
+(defun js/clock-in-to-next (kw)
+  "Switch a task from TODO to NEXT when clocking in.
+Skips capture tasks, projects, and subprojects.
+Switch projects and subprojects from NEXT back to TODO."
+  (when (not (and (boundp 'org-capture-mode) org-capture-mode))
+    (cond
+     ((and (member (org-get-todo-state) (list "TODO"))
+           (js/is-task-p))
+      "NEXT")
+     ((and (member (org-get-todo-state) (list "NEXT"))
+           (js/is-project-p))
+      "TODO"))))
+
+(defun js/punch-in (arg)
+  "Start continuous clocking and set the default task to the selected task."
+  (interactive "p")
+  (if (equal major-mode 'org-agenda-mode)
+      ;; we are in agenda
+      (let* ((marker (org-get-at-bol 'org-hd-marker))
+             (tags (org-with-point-at marker (org-get-tags-at))))
+        (if (and (eq arg 4) tags)
+            (org-agenda-clock-in '(16))
+          (js/clock-in-organization-task-as-default)))
+    ;; not in agenda mode
+    (save-restriction
+      (widen)
+      ;; find the tags on the current task
+      (if (and (equal major-mode 'org-mode) (not (org-before-first-heading-p)) (eq arg 4))
+          (org-clock-in '(16))
+        (js/clock-in-organization-task-as-default)))))
+
+(defun js/punch-out ()
+  (interactive)
+  (when (org-clock-is-active)
+    (org-clock-out))
+  (org-agenda-remove-restriction-lock))
+
+(defvar js/organization-task-id "3EA0E2D8-FA3F-43EE-8C16-00D9F2A7F054")
+
+(defun js/clock-in-organization-task-as-default ()
+  "Clock in organization task as default."
+  (interactive)
+  (org-with-point-at (org-id-find js/organization-task-id 'marker)
+    (org-clock-in '(16))))
+
+(setq! org-clock-persist t
+       org-clock-in-switch-to-state 'js/clock-in-to-next
+       org-clock-out-remove-zero-time-clocks t
+       org-clock-persist-query-resume nil)
+
+;; automatically punch out if I am idle for 30 mins
+(defvar punch-out-timer
+  (run-with-idle-timer 1800 t #'js/punch-out))
+#+end_src
+
+*** org clock-convenience
+:PROPERTIES:
+:ID:       d8cc7282-b617-474c-9936-c49afc065968
+:END:
+#+begin_src emacs-lisp
+(use-package! org-clock-convenience
+  :commands (org-clock-convenience-timestamp-up org-clock-convenience-timestamp-down))
+#+end_src
+
+*** org pomodoro
+:PROPERTIES:
+:ID:       0a600463-96ce-410d-86cb-77acc19ae39e
+:END:
+#+begin_src emacs-lisp
+;; (use-package! org-pomodoro
+;;   :commands org-pomodoro
+;;   :config
+;;   (defun org-pomodoro-prompt ()
+;;     (interactive)
+;;     (org-clock-goto)
+;;     (if (y-or-n-p "Start a new pomodoro?")
+;;         (progn
+;;           (org-pomodoro))))
+  ;; (setq! org-pomodoro-finished-sound (concat (expand-file-name "~") "/.config/resources/finish.wav"))
+  ;; (setq! org-pomodoro-short-break-sound (concat (expand-file-name "~") "/.config/resources/start.wav"))
+  ;; (setq! org-pomodoro-long-break-sound (concat (expand-file-name "~") "/.config/resources/start.wav"))
+  ;; (add-hook! 'org-pomodoro-break-finished-hook #'org-pomodoro-prompt))
+#+end_src
+
+*** org alert
+:PROPERTIES:
+:ID:       325eac4d-6f07-4df6-94de-91e2dc3db658
+:END:
+parse agenda for current day(and tomorrow) whenever agenda file changed
+#+begin_src emacs-lisp
+;; (after! org-agenda
+;;   (require 'org-alert)
+;;   (setq! alert-default-style 'libnotify)
+;;   (org-alert-check)
+;;   (require 'filenotify)
+  ;; (file-notify-add-watch org-default-projects-file '(change) #'org-alert-check)
+  ;; (run-at-time "24:01" nil #'org-alert-check))
+#+end_src
+
+*** appt for notification
+:PROPERTIES:
+:ID:       16e1241a-df70-4458-a30b-65b619bb1f99
+:END:
+reference : [[https://gist.github.com/Gavinok/50f804ea5a2856ee52dee1ba02e97cb9]]
+
+#+begin_src emacs-lisp
+(use-package appt
+  :demand t
+  :defer 5
+  :custom
+  ((appt-message-warning-time 15)
+   (appt-display-duration 30)
+   (appt-display-interval 5)
+   (appt-disp-window-function #'my/appt-display)
+   (appt-delete-window-function #'ignore))
+  :init
+  (require 'plz)
+  (defun my/appt-display (min-to-app _new-time appt-msg)
+    (require 'notifications)
+    ;; Close the last iteration of this notification
+    (let ((title  (pcase min-to-app
+                    ("0" "Appointment Is Starting")
+                    (min (concat " Appointment in " min " Minutes"))))
+          (body appt-msg)
+          (urgency (if (< (string-to-number min-to-app) 3)
+                       'critical
+                     'normal)))
+
+      ;; Send a desktop notification for this appointment
+      (funcall (if  (eq system-type 'android)
+                   ;; support for android notifications
+                   'android-notifications-notify
+                 'notifications-notify)
+               :title title
+               :body body
+               :urgency urgency
+               :actions '("Open" "Open this appointment")
+               :on-action (lambda (_id _key) (org-agenda 'd)))
+
+      ;; Notify me on my phone
+      (plz 'post "https://ntfy.sh/org-agenda"
+        :headers `(("Title"  . ,title)
+                   ("Priority" . ,(if (eql urgency 'critical)
+                                      "high"
+                                    "default"))
+                   ("Tags" . "calendar")
+                   ("Markdown" . "yes"))
+        :body body)))
+  ;; Check for if a notification needs to be sent
+  (appt-activate +1)
+  ;; generate appointments from my org agenda
+  (org-agenda-to-appt)
+
+  ;; Run when I am idle for a minute at a time
+  ;; (usually when looking at my browser)
+  (defvar appt-update-org-timer
+    ;; wait till emacs is idle for 1 minute before processing org appointments
+    (run-with-idle-timer 60 t #'org-agenda-to-appt)
+    "Timer used to update appt to the current org events"))
+#+end_src
+
+
+
+** org mode keybinding
+:PROPERTIES:
+:ID:       cc611734-b072-4621-ba8c-9b7bc377367f
+:END:
+
+*** evil-org-mode keybinding
+some useful evil-org-mode keybinding (https://github.com/Somelauw/evil-org-mode)
+| key         | explanation                                            |
+|-------------+--------------------------------------------------------|
+| M-{h,j,k,l} | movements of headings (or columns with point in table) |
+| vaR         | select subtree (or whole table with point in table)    |
+
+#+begin_src emacs-lisp
+(after! evil-org
+  (remove-hook 'org-tab-first-hook #'+org-cycle-only-current-subtree-h)
+  (map! :map org-mode-map
+        :n "C-j" #'evil-scroll-down
+        :n "C-k" #'evil-scroll-up
+        :m "<tab>" #'org-cycle)
+  (map! :leader
+        (:prefix ("o" . "org")
+         :desc "org-agenda" "a" #'org-agenda
+         :desc "org-id-store-link" "l" #'org-id-store-link
+         :desc "org-store-link" "L" #'org-store-link
+         :desc "org-clock-goto" "g" #'org-clock-goto
+         :desc "clock-in default task" "i" #'js/punch-in
+         :desc "clock-out current task" "o" #'js/punch-out
+         :desc "clock histories" "h" #'(lambda () (interactive) (org-clock-in '(4)))))
+
+  (map! :map org-mode-map
+        :localleader
+        :desc "src edit" "s" #'org-insert-structure-template
+        :desc "archive" "A" #'org-archive-subtree-default-with-confirmation
+        :desc "org-babel-execute-src-block" "x" #'org-babel-execute-src-block
+        :desc "hydra-org-refiler" "f" #'hydra-org-refiler/body
+        :desc "org-narrow-to-subtree" "N" #'org-narrow-to-subtree
+        :desc "org-set-tags-command" "T" #'org-set-tags-command
+        :desc "widen" "w" #'widen
+        (:prefix ("c" . "clock")
+         :desc "org-clock-in" "i" #'org-clock-in
+         :desc "org-clock-out" "o" #'org-clock-out
+         :desc "org-pomodoro" "p" #'org-pomodoro)
+        (:prefix ("b" . "babel")
+         :desc "tangle current block" "t" #'(lambda () (interactive) (org-babel-tangle '(4)))
+         :desc "tangle current buffer" "T" #'(lambda () (interactive) (org-babel-tangle '(16))))
+        (:prefix ("t" . "tasks")
+         :desc "org-schedule" "s" #'org-schedule
+         :desc "org-todo" "t" #'org-todo
+         :desc "org-deadline" "d" #'org-deadline
+         :desc "org-priority" "p" #'org-priority)))
+
+#+end_src
+
+
+** org research
+*** paths I use
+:PROPERTIES:
+:ID:       486c1a44-e7c0-429a-99c2-57feea7d4d7b
+:END:
+#+begin_src emacs-lisp
+(defvar js/roam-directory (concat org-directory "roam/"))
+(defvar js/bibliography-file (expand-file-name "references.bib"
+                                               (concat js/roam-directory "biblio")))
+(defvar js/pdf-directory "~/OneDrive/Documents/pdfs/")
+#+end_src
+
+*** org-cite
+#+begin_src emacs-lisp
+(use-package! oc
+  :config
+  (setq! org-cite-export-processors '((latex bibtex) (t csl))))
+#+end_src
+
+*** bibtex-completion
+:PROPERTIES:
+:ID:       983dbec8-9b00-434c-aa87-d62ed79891fd
+:END:
+#+begin_src emacs-lisp
+;; (if (doom-module-p :completion 'ivy)
+(use-package! bibtex-completion
+  :config
+  (bibtex-set-dialect 'BibTeX)
+  (setq! bibtex-completion-library-path js/pdf-directory
+         bibtex-completion-notes-path (concat org-directory "ref")
+         bibtex-completion-notes-path js/roam-directory
+         bibtex-completion-additional-search-fields '(tags keywords)
+         bibtex-completion-bibliography `(,js/bibliography-file)))
+#+end_src
+
+*** citar
+#+begin_src emacs-lisp
+
+(use-package! citar
+  ;; :general (general-def "C-c b" #'citar-open-notes)
+  :config
+  (setq! citar-bibliography `(,js/bibliography-file)
+         org-cite-global-bibliography `(,js/bibliography-file)
+         citar-notes-paths (list (concat js/roam-directory "references"))))
+;;        citar-library-paths js/pdf-directory
+#+end_src
+
+
+*** org-roam
+:PROPERTIES:
+:ID:       2512f6c7-5d5f-4daa-82e2-73f412a062d7
+:END:
+#+begin_src emacs-lisp
+(use-package! org-roam
+  :config
+  (setq-hook! 'org-roam-find-file-hook org-id-link-to-org-use-id nil)
+  ;; suppress annoying warning messages when using org-roam
+  (setq warning-suppress-types (append warning-suppress-types '((org-element-cache))))
+  (setq! org-roam-directory (file-truename js/roam-directory)
+         org-roam-completion-everywhere nil
+         org-roam-extract-new-file-path "${slug}.org")
+  (setq! org-roam-capture-templates
+         '(("d" "default" plain
+            "%?"
+            :if-new (file+head "${slug}.org"
+                               "#+TITLE: ${title}\n")
+            :immediate-finish t
+            :unnarrowed t)
+           ("r" "bibliography reference" plain "%?"
+            :if-new
+            (file+head "references/${citekey}.org" "#+title: ${title}\n")
+            :unnarrowed t)
+           ("n" "today's note" entry (function org-roam-dailies-capture-today)
+            "* %?\n")
+           ("n" "noter" plain "%?"
+            :if-new (file+head
+                     "${title}.org"
+                     "#+TITLE: ${title}\n* Notes :noter:\n:PROPERTIES:\n:NOTER_DOCUMENT: %(orb-process-file-field \"${title}\")\n:NOTER_PAGE:\n:END:")
+            :unnarrowed t)))
+
+  (defhydra hydra-roam-dailies (:idle 0.3 :hint nil)
+    "
+Roam dailies:
+_t_ : today
+_d_ : date
+_j_ : next
+_k_ : previous
+"
+    ("t" #'org-roam-dailies-goto-today)
+    ("d" #'org-roam-dailies-goto-date)
+    ("j" #'org-roam-dailies-goto-next-note)
+    ("k" #'org-roam-dailies-goto-previous-note))
+
+  (general-def
+    :prefix-command 'js/roam
+    :prefix-map 'js/roam-map
+    "d" #'org-roam-buffer-display-dedicated
+    "i" #'org-roam-node-insert
+    "f" #'org-roam-node-find
+    "j" #'hydra-roam-dailies/body
+    "c" #'citar-insert-citation
+    "a" #'org-roam-alias-add)
+  (general-def
+    "C-c r" #'js/roam)
+
+  (general-def js/toggle-map "r" #'org-roam-buffer-toggle))
+#+end_src
+
+
+*** org-roam-bibtex
+:PROPERTIES:
+:ID:       3cb99eb3-b4b8-422e-a107-f88baf6e565a
+:END:
+#+begin_src emacs-lisp
+(use-package! org-roam-bibtex
+  :after org-roam
+  :config
+  (require 'org-ref)
+  ;; (setq! orb-autokey-format "%a%y")
+  (defun js/org-roam-node-from-cite (key-entries)
+    "Create node from cite entry."
+    (interactive (list (citar-select-refs :multiple nil)))
+    (let ((title (citar-format--entry (cdr key-entries)
+                                                "${author} :: ${title}")))
+      (org-roam-capture- :templates
+                         '(("r" "reference" plain "%?" :if-new
+                            (file+head "references/${citekey}.org"
+                                       ":PROPERTIES:
+:ROAM_REFS: [cite:@${citekey}]
+:END:
+,#+TITLE: ${title}
+,* Notes :noter:
+:PROPERTIES:
+:NOTER_DOCUMENT: %(orb-get-attached-file \"${citekey}\")
+:NOTER_PAGE:
+:END:\n")
+                            :immediate-finish t
+                            :unnarrowed t))
+                         :info (list :citekey (car key-entries))
+                         :node (org-roam-node-create :title title)
+                         :props '(:finalize find-file))))
+  (general-def
+   :prefix-command 'js/roam
+    :prefix-map 'js/roam-map
+    "b" #'js/org-roam-node-from-cite))
+#+end_src
+
+*** org-roam-ui
+=M-x org-roam-ui-mode= 로 글로벌 모드를 킨뒤, http://127.0.0.1:35901/ 로 들어가면 된다.
+#+begin_src emacs-lisp
+(use-package! websocket
+  :after org-roam)
+
+(use-package! org-roam-ui
+  :after org-roam
+  :config
+  (setq! org-roam-ui-sync-theme t
+        org-roam-ui-follow t
+        org-roam-ui-update-on-save t
+        org-roam-ui-open-on-start t))
+#+end_src
+
+*** org-ref
+:PROPERTIES:
+:ID:       0175c966-2183-4928-ba84-7c59a34a89c1
+:END:
+#+begin_src emacs-lisp
+(use-package! org-ref
+  :config
+  (setq! org-ref-default-bibliography `(,js/bibliography-file)
+         org-ref-pdf-directory js/pdf-directory)
+  (setq! doi-utils-async-download nil))
+;; org-ref-completion-library 'org-ref-ivy-cite))
+;; (require 'org-ref-ivy))
+#+end_src
+
+
+
+*** pdf-tools
+:PROPERTIES:
+:ID:       238deb2e-6b3d-4f9c-9cd0-2c8ce54626a2
+:END:
+#+begin_src emacs-lisp
+(use-package! pdf-tools
+  :mode (("\\.pdf\\'" . pdf-view-mode))
+  :config
+  (pdf-tools-install :no-query)
+  (setq! pdf-view-continuous nil)
+  (defun js/toggle-pdf-view-auto-slice-minor-mode ()
+    (interactive)
+    (call-interactively 'pdf-view-auto-slice-minor-mode)
+    (if (not pdf-view-auto-slice-minor-mode)
+        (pdf-view-reset-slice)))
+
+  (defun js/pdf-view-continuous-toggle ()
+    (interactive)
+    (cond ((not pdf-view-continuous)
+           (setq pdf-view-continuous t)
+           (message "Page scrolling : Continuous"))
+          (t
+           (setq pdf-view-continuous nil)
+           (message "Page scrolling : Constraied"))))
+
+  (defun js/pdf-view-open-in-zathura ()
+    "Open current PDF with 'zathura'."
+    (interactive)
+    (save-window-excursion
+      (let ((current-file (buffer-file-name))
+            (current-page (number-to-string (pdf-view-current-page))))
+        (async-shell-command
+         (format "zathura -P %s \"%s\"" current-page current-file))))
+    (message "Sent to Zathura"))
+  (map! :map pdf-view-mode-map
+        :v "y" #'pdf-view-kill-ring-save
+        :n "/" #'isearch-forward-regexp
+        :n "C-s" #'isearch-forward
+        :n "C-r" #'isearch-backward
+        :n "j" #'pdf-view-next-line-or-next-page
+        :n "k" #'pdf-view-previous-line-or-previous-page
+        :n "C-j" #'pdf-view-scroll-up-or-next-page
+        :n "C-k" #'pdf-view-scroll-down-or-previous-page
+        :n "P" #'pdf-view-goto-page
+        :n "gg" #'pdf-view-first-page
+        :n "G" #'pdf-view-last-page
+        :n "s" #'js/toggle-pdf-view-auto-slice-minor-mode
+        :n "m" #'pdf-view-midnight-minor-mode
+        :n "M" #'pdf-view-set-slice-using-mouse
+        :n "C" #'js/pdf-view-continuous-toggle
+        :n "w" #'pdf-view-fit-width-to-window
+        :n "f" #'pdf-view-fit-height-to-window
+        :n "'" #'pdf-view-jump-to-register
+        :n "=" #'pdf-view-enlarge
+        :n "-" #'pdf-view-shrink
+        :n "<down-mouse-1>" #'pdf-view-mouse-set-region
+        :n "<C-down-mouse-1>" #'pdf-view-mouse-extend-region
+        :n "RET" #'js/pdf-view-open-in-zathura
+        :n "L" #'pdf-links-action-perform
+        :n "ah" #'pdf-annot-add-highlight-markup-annotation
+        :n "at" #'pdf-annot-add-text-annotation
+        :n "au" #'pdf-annot-add-underline-markup-annotation
+        :n "as" #'pdf-annot-add-squiggly-markup-annotation
+        :n "ad" #'pdf-annot-delete
+        :n "al" #'pdf-annot-list-annotations)
+  (map! :map pdf-annot-edit-contents-minor-mode-map
+        "C-c C-k" #'pdf-annot-edit-contents-abort))
+#+end_src
+
+*** org-noter
+:PROPERTIES:
+:ID:       7f12037f-506b-4841-a5c2-f4f9b62d49be
+:END:
+#+begin_src emacs-lisp
+(use-package! org-noter
+  ;; :general
+  :gfhook org-mode-hook
+  :config
+  ;; (map! :map org-mode-map
+  ;;       :localleader
+  ;;       :desc "org-noter" "n" #'org-noter)
+  (setq! org-noter-doc-split-fraction '(0.57 0.43))
+  (setq! org-noter-hide-other nil)
+
+  (defun js/org-noter-insert-precise-note-dwim (force-mouse)
+    "This wrapper uses point or region instead of clicking by mouse."
+    (interactive "P")
+    (if (and (derived-mode-p 'nov-mode)
+             (not force-mouse))
+        (let ((pos (if (region-active-p)
+                       (min (region-beginning) (point))
+                     (point))))
+          (org-noter-insert-note pos))
+      (org-noter-insert-precise-note)))
+  (general-def
+    :prefix-command 'js/noter
+    :prefix-map 'js/noter-map
+    "I" #'org-noter-insert-note
+    "i" #'js/org-noter-insert-precise-note-dwim
+    "K" #'org-noter-kill-session
+    "j" #'org-noter-sync-next-note
+    "k" #'org-noter-sync-prev-note
+    "c" #'org-noter-sync-current-note
+    "r" #'org-ref-insert-ref-link
+    "a" #'arxiv-get-pdf-add-bibtex-entry ;; you have to execute it insert mode
+    "L" #'org-insert-last-stored-link)
+  (general-m org-mode-map
+    "n" #'org-noter)
+  (general-def "C-c n" #'js/noter))
+#+end_src
+
+
+*** cdlatex
+:PROPERTIES:
+:ID:       5161a345-0d34-40e6-85f0-4b5a701f7b8e
+:END:
+#+begin_src emacs-lisp
+(use-package! cdlatex
+  :general (general-def js/toggle-map "l" #'org-cdlatex-mode)
+  :commands org-cdlatex-mode
+  :config
+  (setq! cdlatex-env-alist
+         '(("equation*" "\\begin{equation*}\n?\n\\end{equation*}" nil)
+           ("matrix" "\\left[\\begin{matrix}?\\end{matrix}\\right]" nil)
+           ("axiom" "\\begin{axiom}\n?\n\\end{axiom}\n" nil)
+           ("array" "\\begin{array}{ll}?&\\end{array}" nil)
+           ("proof" "\\begin{proof}\n?\n\\end{proof}\n" nil)
+           ("definition" "\\begin{definition}\nAUTOLABEL\n?\n\\end{definition}" nil)
+           ("theorem" "\\begin{theorem}\nAUTOLABEL\n?\n\\end{theorem}" nil)))
+
+  (setq! cdlatex-command-alist
+         '(("equ*" "Insert equation*" "" cdlatex-environment ("equation*") t nil)
+           ("ali*" "Insert align*"   "" cdlatex-environment ("align*") t nil)
+           ("arr" "Insert array" "" cdlatex-environment ("array") t nil)
+           ("mat" "Insert matrix" "" cdlatex-environment ("matrix") t nil)
+           ("pmat" "insert matrix"   "" cdlatex-environment ("pmatrix") t nil)
+           ("prf" "Insert proof env"   "" cdlatex-environment ("proof") t nil)
+           ("axm" "Insert axiom env"   "" cdlatex-environment ("axiom") t nil)
+           ("thr" "Insert theorem env" "" cdlatex-environment ("theorem") t nil)
+           ("def" "Insert defintion env" "" cdlatex-environment ("definition") t nil)))
+
+  ;; can't insert backticks in org-mode without this
+  (map! :map cdlatex-mode-map
+        "`" nil)
+  (map! :map org-cdlatex-mode-map
+        :mi "<tab>" #'cdlatex-tab
+        "`" nil))
+#+end_src
+
+*** ox-latex
+:PROPERTIES:
+:ID:       68ed0a4b-836c-45bb-9fb0-f32edfdd8016
+:END:
+"\\setmathfont{STIXTwoMath}[
+                    Path=/usr/share/fonts/OTF/,
+                    Extension={.otf},
+                    Scale=1]" 이게 pdf export 시 문제를 일으킴.
+
+
+#+begin_src emacs-lisp
+(after! org
+  (setq! reftex-default-bibliography js/bibliography-file)
+  ;; (plist-put org-format-latex-options :scale 1.0)
+  (setq! org-preview-latex-default-process 'dvisvgm
+         org-preview-latex-process-alist
+         '((dvisvgm :programs
+            ("xelatex" "dvisvgm")
+            :description "xdv > svg"
+            :message "you need to install the programs: xelatex and dvisvgm."
+            :use-xcolor t
+            :image-input-type "xdv"
+            :image-output-type "svg"
+            :image-size-adjust (1.0 . 1.0)
+            :latex-compiler
+            ("xelatex -no-pdf -interaction nonstopmode -shell-escape -output-directory %o %f")
+            :image-converter
+            ("dvisvgm %f -e -n -b min -c %S -o %O"))
+           (imagemagick :programs
+                        ("xelatex" "convert")
+                        :description "pdf > png"
+                        :message "you need to install the programs: xelatex and imagemagick."
+                        :use-xcolor t
+                        :image-input-type "pdf"
+                        :image-output-type "png"
+                        :image-size-adjust (1.0 . 1.0)
+                        :latex-compiler
+                        ("xelatex -interaction nonstopmode -output-directory %o %f")
+                        :image-converter
+                        ("convert -density %D -trim -antialias %f -quality 100 %O"))))
+
+  (setq! org-format-latex-options '(:foreground default :background "Transparent" :scale 1.0 :html-foreground "Black" :html-background "Transparent" :html-scale 1.0 :matchers
+			            ("begin" "$1" "$" "$$" "\\(" "\\["))
+         org-latex-src-block-backend 'minted
+         org-latex-minted-options '(("breaklines")
+                                    ("bgcolor" "bg"))
+         org-latex-compiler "xelatex"
+         org-latex-packages-alist
+         '(("" "amsthm")
+           ("" "amsfonts")
+           ("" "amsmath" t)
+           ("" "cancel" t)
+           ("" "booktabs")
+           ("" "bm")
+           ("" "tikz")
+           ("" "xcolor" t)
+           ("cache=false" "minted" t))
+         org-latex-classes
+         '(("Notes" "\\documentclass{ctexart}\n[NO-DEFAULT-PACKAGES]\n[NO-PACKAGES]\n\\usepackage{/home/eli/.emacs.d/private/NotesTeXV3}"
+	    ("\\part{%s}" . "\\part*{%s}")
+	    ("\\section{%s}" . "\\section*{%s}")
+	    ("\\subsection{%s}" . "\\subsection*{%s}")
+	    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	    ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	    ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	   ("article_kr" "\\documentclass[11pt]{ctexart}\n[DEFAULT-PACKAGES]\n[PACKAGES]\n[EXTRA]\n\\definecolor{bg}{rgb}{0.95,0.95,0.95}"
+	    ("\\section{%s}" . "\\section*{%s}")
+	    ("\\subsection{%s}" . "\\subsection*{%s}")
+	    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	    ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	    ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	   ("beamer" "\\documentclass[ignorenonframetext,presentation]{beamer}\n[DEFAULT-PACKAGES]\n[PACKAGES]\n[EXTRA]\n"
+	    ("\\section{%s}" . "\\section*{%s}")
+	    ("\\subsection{%s}" . "\\subsection*{%s}"))
+	   ("article" "\\documentclass[11pt]{article}"
+	    ("\\section{%s}" . "\\section*{%s}")
+	    ("\\subsection{%s}" . "\\subsection*{%s}")
+	    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
+	    ("\\paragraph{%s}" . "\\paragraph*{%s}")
+	    ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))
+	   ("report" "\\documentclass[11pt]{report}"
+	    ("\\part{%s}" . "\\part*{%s}")
+	    ("\\chapter{%s}" . "\\chapter*{%s}")
+	    ("\\section{%s}" . "\\section*{%s}")
+	    ("\\subsection{%s}" . "\\subsection*{%s}")
+	    ("\\subsubsection{%s}" . "\\subsubsection*{%s}"))
+	   ("book" "\\documentclass[11pt]{book}"
+	    ("\\part{%s}" . "\\part*{%s}")
+	    ("\\chapter{%s}" . "\\chapter*{%s}")
+	    ("\\section{%s}" . "\\section*{%s}")
+	    ("\\subsection{%s}" . "\\subsection*{%s}")
+	    ("\\subsubsection{%s}" . "\\subsubsection*{%s}")))))
+#+end_src
+
+
+** org-download
+:PROPERTIES:
+:ID:       c94ada81-43cd-42b9-84e7-46a05b90aca6
+:END:
+#+begin_src emacs-lisp
+(use-package! org-download
+  :general (general-m org-mode-map
+             "S" #'org-download-screenshot)
+  :config
+  (setq! org-download-screenshot-method "grim -g \"$(slurp)\" %s")
+  (setq! org-download-link-format "[[file:%s]]\n")
+  (setq-default org-download-image-dir org-attach-id-dir)
+  (setq! org-download-abbreviate-filename-function 'file-relative-name)
+  (defun js/org-download-method (link)
+    (let ((filename
+           (file-name-nondirectory
+            (car (url-path-and-query
+                  (url-generic-parse-url link)))))
+          (dirname (concat "./images/"
+                           (replace-regexp-in-string " " "_" (downcase (file-name-base buffer-file-name))))))
+
+      (setq! filename-with-timestamp (format "%s%s.%s"
+                                             (file-name-sans-extension filename)
+                                             (format-time-string org-download-timestamp)
+                                             (file-name-extension filename)))
+      (unless (file-exists-p dirname)
+        (make-directory dirname t))
+      (expand-file-name filename-with-timestamp dirname)))
+  (setq! org-download-method 'js/org-download-method))
+#+end_src
+
+** =org-cliplink=
+:PROPERTIES:
+:ID:       c681b6c2-b717-4b36-a9ff-8d4168b120b8
+:END:
+#+begin_src emacs-lisp
+(use-package! org-cliplink
+  :commands (org-cliplink-capture))
+#+end_src
+
+
+** org-superstar
+:PROPERTIES:
+:ID:       a7afac1a-2a5f-48d6-b585-63fd365cb3f6
+:END:
+#+begin_src emacs-lisp
+(setq! org-superstar-headline-bullets-list '("♤" "♧" "♡" "♢")
+       org-ellipsis " ▼")
+#+end_src
+
+
+** org-babel
+:PROPERTIES:
+:ID:       4a27ec31-e30e-4283-868f-a16a94d9e400
+:END:
+#+begin_src emacs-lisp
+(setq! org-babel-uppercase-example-markers t)
+#+end_src
+
+** org-re-reveal
+#+begin_src emacs-lisp
+(after! org-re-reveal
+  (setq! org-re-reveal-title-slide nil))
+#+end_src
+
+** org presentation
+#+begin_src emacs-lisp
+(use-package! org-present
+  :custom
+  (org-present-text-scale 2)
+  :hook ((org-present-mode . my/org-present-start)
+         (org-present-mode-quit . my/org-present-end)
+         (org-present-after-navigate-functions . my/org-present-prepare-slide))
+  :init
+  (defun my/org-present-start ()
+    (setq header-line-format " ")
+    (set-face-background 'header-line "doom-modeline-bar-inactive")
+    (org-display-inline-images)
+    (org-present-hide-cursor)
+    (org-present-read-only)
+    ;; (visual-fill-column-mode 1)
+    ;; (visual-line-mode 1)
+    (doom-disable-line-numbers-h)
+    (org-present-big)
+    ;; (hl-line-mode 0)
+    ;; (+modeline-mode 0)
+    (org-present-bindings-start))
+
+  (defun my/org-present-end ()
+    (setq header-line-format nil)
+    (org-remove-inline-images)
+    (org-present-small)
+    (org-present-show-cursor)
+    (org-fold-show-children)
+    ;; (visual-fill-column-mode 0)
+    ;; (visual-line-mode 0)
+    ;; (hl-line-mode 1)
+    ;; (+modeline-mode 1)
+    (org-present-bindings-end)
+    (doom-enable-line-numbers-h))
+
+  (defun my/org-present-prepare-slide (&rest _args)
+    (org-overview)
+    (org-fold-show-entry)
+    (org-fold-show-children)
+    (org-fold-show-all)))
+#+end_src
+
+* email
+** mu4e
+:PROPERTIES:
+:ID:       8a53e69e-c596-4c26-ad17-380728cd13c5
+:END:
+#+begin_src emacs-lisp
+(use-package! mu4e
+  :disabled t
+  :config
+  (map! :map mu4e-view-mode-map
+        :n "C-j" nil
+        :n "C-k" nil
+        :n "M-j" #'mu4e-view-headers-next
+        :n "M-k" #'mu4e-view-headers-prev)
+  ;; refresh mail every 10 min
+  (setq! mu4e-update-interval (* 10 60)
+         mu4e-get-mail-command "mbsync -a"
+         mu4e-change-filenames-when-moving t
+         mu4e-maildir-list '("~/.mail"))
+  ;; for msmtp
+  (setq! send-mail-function #'smtpmail-send-it
+         message-sendmail-f-is-evil t
+         message-sendmail-extra-arguments '("--read-envelope-from")
+         message-send-mail-function #'message-send-mail-with-sendmail)
+  ;; configure email address
+  (set-email-account!
+   "Gmail"
+   '((user-mail-address . "jisoo.h.lee@gmail.com")
+     (mu4e-sent-folder . "/gmail/Sent")
+     (mu4e-drafts-folder . "/gmail/Drafts")
+     (mu4e-trash-folder . "/gmail/Trash")
+     (mu4e-refile-folder . "/gmail/Archive")
+     (smtpmail-smtp-user . "jisoo.h.lee@gmail.com")
+     (smtpmail-smtp-server . "smtp.gmail.com")
+     (smtpmail-smtp-service . 587)
+     (mu4e-compose-signature . "---\nJisoo Lee"))
+   t)
+
+  (set-email-account!
+   "Daum"
+   '((user-mail-address . "palmlee85@hanmail.net")
+     (mu4e-sent-folder . "/daum/sent")
+     (mu4e-drafts-folder . "/daum/drafts")
+     (mu4e-trash-folder . "/daum/trash")
+     (mu4e-refile-folder . "/daum/inbox")
+     (smtpmail-smtp-user . "palmlee85@hanmail.net")
+     (smtpmail-smtp-server . "smtp.daum.net")
+     (smtpmail-smtp-service . 465)
+     (mu4e-compose-signature . "---\n이지수 드림"))
+   nil)
+
+  ;; modify context behavior when opening mu4e and composing email
+  (setq! mu4e-context-policy 'ask-if-none
+         mu4e-compose-context-policy 'always-ask))
+
+;; removes strange error messages when mu4e executed
+;; (after! evil-collection
+;;   (after! mu4e
+;;     (setq! evil-collection-mu4e-end-region-misc "\\[q\\]uit")))
+#+end_src
+
+** org exports
+
+*** ox-jira
+#+begin_src emacs-lisp
+(use-package! ox-jira)
+#+end_src
+
+
+*** ox-pandoc
+#+begin_src emacs-lisp
+(use-package! ox-pandoc
+  :custom
+  (org-pandoc-options-for-gfm '((toc . nil)
+                                (wrap . "none"))))
+#+end_src
+
+
+* Programming
+
+** yaml
+#+begin_src emacs-lisp
+(use-package! yaml-mode
+  :hook (yaml-mode . (lambda () (spell-fu-mode -1)))
+  :config
+  (setq! yaml-ts-mode-hook yaml-mode-hook))
+
+(use-package! yaml-pro
+  :config
+  (map! :map yaml-mode-map
+        :v "<tab>" #'yaml-pro-ts-mark-subtree
+        "M-h" #'yaml-pro-unindent-subtree
+        "M-l" #'yaml-pro-indent-subtree
+        "C-M-k" #'yaml-pro-move-subtree-up
+        "C-M-j" #'yaml-pro-move-subtree-down)
+  (add-hook 'yaml-mode-hook #'yaml-pro-mode 100))
+#+end_src
+
+** kubernetes
+#+begin_src emacs-lisp
+(use-package! kubel
+  :init
+  (defun js/kubel-set-kubectl-config-file ()
+    (interactive)
+    (let ((expanded-configfile (expand-file-name "~/.kube/config")))
+      (if (file-exists-p expanded-configfile)
+          (progn
+            (let ((real-configfile (file-chase-links expanded-configfile)))
+              (setenv "KUBECONFIG" real-configfile))
+            (setq-default kubel-context
+                          (completing-read
+                           "select context: "
+                           (split-string
+                            (kubel--exec-to-string
+                             (format "%s config view -o jsonpath='{.contexts[*].name}'" kubel-kubectl))))))
+        (error "Kubectl config file ~/.kube/config does not exist!"))))
+  :config
+  (kubel-vterm-setup)
+  (map! :map yaml-mode-map
+        :localleader
+        :desc "kubectl apply" "a" #'kubel-apply)
+  (map! :leader
+        :desc "k8s" "kk" #'kubel
+        :desc "switch namespace" "ks" #'js/kubel-set-kubectl-config-file))
+
+(use-package! kubel-evil
+  :after kubel)
+
+;; (use-package! kubed
+;;   :config
+;;   (kubed-define-resource serviceaccount () :plural serviceaccount)
+;;   (kubed-define-resource pvc
+;;                          ((phase ".status.phase" 10)
+;;                           (capacity ".status.capacity.storage" 10)
+;;                           (storage ".spec.storageClassName" 10)
+;;                           (since ".status.starttime" 20))
+;;                          :logs t
+;;                          :plural pvc)
+;;   (general-def "C-c k" #'kubed-prefix-map)
+;;   (map! :map yaml-ts-mode-map
+;;         :localleader
+;;         :desc "kubectl apply" "a" #'kubed-apply)
+;;   (map! :map kubed-list-mode-map
+;;         :n "?" #'kubed-list-transient))
+
+(use-package! kubedoc)
+#+end_src
+
+** treesit
+#+begin_src emacs-lisp
+(use-package! treesit-auto
+  :disabled t
+  :custom
+  (treesit-auto-install 'prompt)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
+#+end_src
+
+
+** formatter
+#+begin_src emacs-lisp
+;; disable lsp formatter universally
+(setq +format-with-lsp nil)
+;; specify formatter
+(setq-hook! 'python-mode-hook +format-with 'black)
+#+end_src
+
+** program mode keymapping
+#+begin_src emacs-lisp
+(map! :map prog-mode-map
+      :n "<return>" #'+lookup/definition)
+
+(map! :map prog-mode-map
+      :localleader
+      :desc     "repl"          :n      "'"     #'+eval/open-repl-other-window
+      :desc     "format"        :n      "f"     #'+format/buffer
+      (:prefix ("e" . "code eval")
+       :desc    "send region"   :n      "e"     #'+eval/send-region-to-repl
+       :desc    "send buffer"   :n      "b"     #'+eval/buffer))
+#+end_src
+
+** woman
+#+begin_src emacs-lisp
+(general-s "w" #'+default/man-or-woman)
+#+end_src
+
+** LSP
+
+#+begin_src emacs-lisp
+(use-package! lsp-mode
+  :commands (lsp lsp-deferred))
+#+end_src
+
+
+*** lsp-ui
+#+begin_src emacs-lisp
+(use-package! lsp-ui
+  :after lsp-mode
+  :config
+  (setq! lsp-ui-sideline-enable nil))
+#+end_src
+
+*** dap-mode
+
+#+begin_src emacs-lisp
+(after! dap-mode
+  (setq! dap-python-debugger 'debugpy)
+  (map! :map dap-mode-map
+        :localleader
+        :prefix ("d" . "dap")
+        ;; basics
+        :desc "dap next"          "n" #'dap-next
+        :desc "dap step in"       "i" #'dap-step-in
+        :desc "dap step out"      "o" #'dap-step-out
+        :desc "dap continue"      "c" #'dap-continue
+        :desc "dap hydra"         "h" #'dap-hydra
+        :desc "dap debug restart" "r" #'dap-debug-restart
+        :desc "dap debug"         "s" #'dap-debug
+
+        ;; debug
+        :prefix ("dd" . "Debug")
+        :desc "dap debug recent"  "r" #'dap-debug-recent
+        :desc "dap debug last"    "l" #'dap-debug-last
+
+        ;; eval
+        :prefix ("de" . "Eval")
+        :desc "eval"                "e" #'dap-eval
+        :desc "eval region"         "r" #'dap-eval-region
+        :desc "eval thing at point" "s" #'dap-eval-thing-at-point
+        :desc "add expression"      "a" #'dap-ui-expressions-add
+        :desc "remove expression"   "d" #'dap-ui-expressions-remove
+
+        :prefix ("db" . "Breakpoint")
+        :desc "dap breakpoint toggle"      "b" #'dap-breakpoint-toggle
+        :desc "dap breakpoint condition"   "c" #'dap-breakpoint-condition
+
+        :desc "dap breakpoint log message" "l" #'dap-breakpoint-log-message))
+
+#+end_src
+
+** Eglot
+=:Kubernetes= is alias for
+#+begin_src emacs-lisp
+(use-package! eglot
+  :hook ((prog-mode yaml-mode) . eglot-ensure)
+  :config
+  (setq-default eglot-workspace-configuration
+                '(:yaml (:format (:enable t)
+                         :validate t
+                         :hover t
+                         :completion t
+                         :schemas (http://json.schemastore.org/kustomization ["kustomization.yaml"]
+                                                                             :Kubernetes ["*.yaml" "*.yml"])
+                         :schemaStore (:enable t))))
+  ;; enable lsp in org-src-block https://github.com/joaotavora/eglot/issues/523#issuecomment-1746342643
+  (defun sloth/org-babel-edit-prep (info)
+    (setq buffer-file-name (or (alist-get :file (caddr info))
+                               "org-src-babel-tmp"))
+    (eglot-ensure))
+  (advice-add 'org-edit-src-code
+              :before (defun sloth/org-edit-src-code/before (&rest args)
+                        (when-let* ((element (org-element-at-point))
+                                    (type (org-element-type element))
+                                    (lang (org-element-property :language element))
+                                    (mode (org-src-get-lang-mode lang))
+                                    ((eglot--lookup-mode mode))
+                                    (edit-pre (intern
+                                               (format "org-babel-edit-prep:%s" lang))))
+                          (if (fboundp edit-pre)
+                              (advice-add edit-pre :after #'sloth/org-babel-edit-prep)
+                            (fset edit-pre #'sloth/org-babel-edit-prep))))))
+;; need this to accomodate python-ts-mode as well
+;; (setf (alist-get "python" org-src-lang-modes nil nil #'equal) 'python-ts))
+#+end_src
+
+
+** emacs lisp
+#+begin_src emacs-lisp
+(use-package! elisp-mode
+  :config
+  (setq! emacs-lisp-docstring-fill-column 80))
+#+end_src
+
+
+** python
+#+begin_src emacs-lisp :tangle no
+(use-package! python
+  :config
+  (setq! python-ts-mode-hook python-mode-hook)
+  (map! :map python-mode-map
+        :localleader
+        :desc   "repl"  :n      "'"     #'+python/open-ipython-repl
+        (:prefix ("e"   .       "code eval")
+         :desc  "send region"   :n      "e"     #'python-shell-send-region
+         :desc  "send function" :n      "d" #'python-shell-send-defun
+         :desc  "send buffer"   :n      "b"     #'python-shell-send-buffer)))
+#+end_src
+
+*** pyvenv
+pyenv activation was not recognized by lsp, (maybe fixed by now) so used pyvenv instead
+
+#+begin_src emacs-lisp
+(use-package pyvenv
+  ;; pyvenv-workon refers this environment variable
+  :init
+  (setq! python-shell-interpreter "python3")
+  :hook (python-mode . pyvenv-mode)
+  (projectile-after-switch-project . js/projectile-pyvenv-mode-set)
+  (python-mode . js/projectile-pyvenv-mode-set)
+  :config
+  (defun js/projectile-pyvenv-mode-set ()
+    (require 'projectile)
+    (let* ((pdir (projectile-project-root)) (pfile (concat pdir ".venv")))
+      (if (file-exists-p pfile)
+          (pyvenv-workon (with-temp-buffer
+                           (insert-file-contents pfile)
+                           (nth 0 (split-string (buffer-string)))))
+        (pyvenv-deactivate)))))
+#+end_src
+
+*** dash docset
+:PROPERTIES:
+:ID:       4ee67102-b66e-4aaa-9bfc-b884c0a98d4f
+:END:
+Install docset with =dash-docs-install-docset=, if not found, try =dash-docs-install-user-docset=.
+#+begin_src emacs-lisp
+(use-package! dash-docs
+  :general (general-s "h" #'+lookup/in-docsets)
+  :config
+  (setq! dash-docs-docsets '("R" "Matplotlib"))
+  (set-popup-rule! "*eww*" :side 'right :size .50 :select t :vslot 2 :ttl 3))
+#+end_src
+
+
+** lua
+#+begin_src emacs-lisp
+(after! lua-mode
+  (setq! lsp-clients-emmy-lua-jar-path "/usr/lib/lua-emmy-language-server/EmmyLua-LS-all.jar"))
+#+end_src
+
+** css
+#+begin_src emacs-lisp
+(add-to-list 'auto-mode-alist '("\\.rasi\\'" . css-mode))
+#+end_src
+
+** jupyter
+:PROPERTIES:
+:ID:       89e88884-0bb9-4fc6-baaa-660dddcdbda3
+:END:
+#+begin_src emacs-lisp
+(use-package! ob-jupyter
+  :init
+  (defun display-ansi-colors ()
+    (ansi-color-apply-on-region (point-min) (point-max)))
+  (setenv "PYDEVD_DISABLE_FILE_VALIDATION" "1")
+  :hook (org-babel-after-execute . display-ansi-colors)
+  :config
+  (org-babel-jupyter-aliases-from-kernelspecs t)
+  (map! :map jupyter-repl-mode-map
+        :i "<up>" #'jupyter-repl-history-previous
+        :i "<down>" #'jupyter-repl-history-next)
+  (map! :map jupyter-repl-interaction-mode-map
+        "C-c C-c" #'org-edit-src-exit))
+#+end_src
+
+*** org-babel asynchronous
+:PROPERTIES:
+:ID:       e380df61-32e4-4954-b79c-5ace9200d9f7
+:END:
+#+begin_src emacs-lisp
+(use-package! ob-async
+  :init
+  (setq! org-babel-default-header-args:jupyter-python '((:async . "yes") (:session . "py")
+                                                       (:kernel . "python3")))
+  (setq! org-babel-default-header-args:jupyter-R '((:session . "*R") (:async . "yes")
+                                                  (:kernel . "ir"))))
+#+end_src
+
+*** ein
+#+begin_src emacs-lisp
+(use-package! ein
+  :disabled t
+  :init
+  (setq! ein:jupyter-default-notebook-directory "~/Downloads"))
+#+end_src
+
+* VC
+** git-gutter
+#+begin_src emacs-lisp
+(use-package! git-gutter
+  :commands hydra-git-gutter/body
+  :general
+  (general-def js/toggle-map "g" #'git-gutter-mode)
+  :config
+  (map! :leader
+        :desc "git gutter hydra" "g" #'hydra-git-gutter/body)
+  (defhydra hydra-git-gutter (:color amaranth
+                              :pre (git-gutter-mode 1)
+                              :hint nil)
+    "
+Git gutter:
+  _j_: next hunk        _s_tage hunk     _Q_uit
+  _k_: previous hunk    _r_evert hunk    _q_uit and deactivate git-gutter
+  ^ ^                   _p_opup hunk
+  _gg_: first hunk
+  _G_: last hunk        set start _R_evision
+"
+    ("j" git-gutter:next-hunk)
+    ("k" git-gutter:previous-hunk)
+    ("gg" (progn (goto-char (point-min))
+                 (git-gutter:next-hunk 1)))
+    ("G" (progn (goto-char (point-max))
+                (git-gutter:previous-hunk 1)))
+    ("s" git-gutter:stage-hunk)
+    ("r" git-gutter:revert-hunk)
+    ("p" git-gutter:popup-hunk)
+    ("R" git-gutter:set-start-revision)
+    ("Q" nil :color blue)
+    ("<escape>" nil)
+    ("q" (progn (git-gutter-mode -1)
+                ;; git-gutter-fringe doesn't seem to
+                ;; clear the markup right away
+                (sit-for 0.1)
+                (git-gutter:clear)) :color blue))
+  (set-popup-rule! "*git-gutter:diff*" :side 'right :size .50 :select nil :vslot 1))
+#+end_src
+
+
+* dired
+** dirvish
+#+begin_src emacs-lisp
+(use-package! dirvish
+  :init
+  (put 'dired-find-alternate-file 'disabled nil)
+  :config
+  (dirvish-override-dired-mode)
+  (remove-hook! 'dired-mode-hook #'dired-omit-mode)
+  (add-to-list 'dirvish-preview-disabled-exts "html")
+  (setq! dirvish-header-line-format
+         '(:left (path symlink)
+           :right (free-space))
+         dirvish-mode-line-format
+         '(:left (" " file-modes " " file-link-number " " file-user ":" file-group " " symlink omit vc-info)
+           :right (sort yank index)))
+  (setq! dirvish-attributes '(vscode-icon file-size file-time vc-state symlink-arrow)
+         dirvish-default-layout '(0 0.4 0.6)
+         dirvish-vscode-icon-size 16
+         dirvish-yank-new-name-style 'append-to-filename
+         dirvish-use-mode-line 'global)
+  (map! :map dirvish-mode-map
+        :n "q" #'dirvish-quit
+        :n "o" #'dirvish-quicksort
+        :n "yp" #'dirvish-copy-file-path
+        :n "yn" #'dirvish-copy-file-name
+        :n "pp" #'dirvish-yank
+        :n "pm" #'dirvish-move
+        :n "pl" #'dirvish-symlink))
+
+(dirvish-define-preview eza (file)
+  "Use `exa' to generate directory preview."
+  :require ("eza") ; tell Dirvish to check if we have the executable
+  (when (file-directory-p file) ; we only interest in directories here
+    `(shell . ("eza" "-al" "--color=always" "--icons"
+               "--group-directories-first" ,file))))
+
+(add-to-list 'dirvish-preview-dispatchers 'eza)
+#+end_src
+
+*** vscode-icon
+#+begin_src emacs-lisp
+(use-package! vscode-icon
+  :config
+  (push '("jpg" . "image") vscode-icon-file-alist))
+#+end_src
+
+** y-or-n confirm instead of yes-or-no
+#+begin_src emacs-lisp
+(setq! dired-deletion-confirmer 'y-or-n-p
+       ;; this might be dangerous but I have `trashed` package as my backup
+       dired-recursive-deletes 'always)
+#+end_src
+
+** custom functions
+#+begin_src emacs-lisp
+;; to use rifle
+(defun js/dired-open-external ()
+  "Open selected path(s) with external opener."
+  (interactive)
+  (let ((opener (cond ((executable-find "rifle")
+                       "rifle")
+                      ((executable-find "open")
+                       "open"))))
+    (when opener
+      (dolist (file (dired-get-marked-files))
+        (start-process "js/dired-open" nil
+                       opener (file-truename file))))))
+
+;; to use dragon-and-drop
+(defun js/dired-dragon-drop ()
+  "Dragon-drag-and-drop file"
+  (interactive)
+  (dolist (file (dired-get-marked-files))
+    (call-process "/bin/bash" nil 0 nil "-c"
+                  (concat "dragon-drop -a -x \"" (file-truename file) "\""))))
+
+;; to clear kill ring
+(defun clear-kill-ring()
+  (interactive)
+  (progn
+    (setq kill-ring nil)
+    (garbage-collect)))
+#+end_src
+
+** dired keybindings
+:PROPERTIES:
+:ID:       424aceae-b703-4122-8233-f00cdc694e19
+:END:
+#+begin_src emacs-lisp
+(after! dirvish
+  (map! :map dired-mode-map
+        :n "C" #'magit-clone
+        :n "RET" #'js/dired-open-external
+        :n "C-d" #'js/dired-dragon-drop
+        :nv "<tab>" #'dired-mark
+        :nv "<backtab>" #'dired-unmark
+        :n "cd" #'dired-create-directory
+        :n "cc" #'dired-do-rename
+        :n "cm" #'dired-do-chmod
+        :n "co" #'dired-do-chown
+        :n "cg" #'dired-do-chgrp
+        :n "D" #'dired-do-delete))
+#+end_src
+
+** dired-quick-sort
+:PROPERTIES:
+:ID:       4fbf7482-448a-4edf-8337-bf9a776652dc
+:END:
+#+begin_src emacs-lisp
+(use-package! dired-quick-sort
+  :after dired
+  :general ('normal dired-mode-map
+                    "Q" #'hydra-dired-quick-sort/body)
+  :config
+  (dired-quick-sort-setup))
+#+end_src
+
+** quickmarks in dired
+:PROPERTIES:
+:ID:       9bebf289-ab0d-482c-a6a5-9db31580fcf8
+:END:
+#+begin_src emacs-lisp
+(after! dirvish
+  (map! :map dired-mode-map
+        :prefix "'"
+        :desc "root directory" :n "/" '(lambda() (interactive) (find-file "/"))
+        :desc "bin directory" :n "b" '(lambda() (interactive) (find-file "/bin/"))
+        :desc "tmp directory" :n "t" '(lambda() (interactive) (find-file "/tmp/"))
+        :desc "usr directory" :n "u" '(lambda() (interactive) (find-file "/usr/"))
+        :desc "var directory" :n "V" '(lambda() (interactive) (find-file "/var/"))
+        :desc "scripts directory" :n "b" '(lambda() (interactive) (find-file "~/dotfiles/scripts/bin/"))
+        :desc "XDG data directory" :n "l" '(lambda() (interactive) (find-file "~/.local/share"))
+        :desc "source directory" :n "s" '(lambda() (interactive) (find-file "~/src"))
+        :desc "org directory" :n "o" '(lambda() (interactive) (find-file "~/OneDrive/org"))
+        :desc "home directory" :n "h" '(lambda() (interactive) (find-file "~/"))
+        :desc "Videos directory" :n "v" '(lambda() (interactive) (find-file "~/Videos"))
+        :desc "emacs directory" :n "e" '(lambda() (interactive) (find-file "~/.doom.d/"))
+        :desc "downloads directory" :n "d" (lambda() (interactive) (find-file "~/Downloads"))
+        :desc "pictures directory" :n "p" (lambda() (interactive) (find-file "~/Pictures"))
+        :desc "screenshots directory" :n "c" '(lambda() (interactive) (find-file "~/move"))
+        :desc "Documents directory" :n "D" '(lambda() (interactive) (find-file "~/OneDrive/Documents"))))
+#+end_src
+
+** dired-atool
+:PROPERTIES:
+:ID:       71a1c2e6-3a10-4555-a12f-03d5250d030e
+:END:
+unzip/zip things
+#+begin_src emacs-lisp
+(use-package! dired-atool
+  :general
+  ('normal dired-mode-map
+           "x" #'dired-atool-do-unpack-with-subdirectory
+           "X" #'dired-atool-do-unpack
+           "P" #'dired-atool-do-pack))
+#+end_src
+
+** dired-toggle-sudo
+#+begin_src emacs-lisp
+(use-package dired-toggle-sudo
+  :general ('normal dired-mode-map "zs" #'dired-toggle-sudo))
+#+end_src
+
+** dired-ranger
+#+begin_src emacs-lisp
+(use-package! dired-ranger
+  :disabled t
+  :general ('normal dired-mode-map
+                    "yy" #'dired-ranger-copy
+                    "pP" #'dired-ranger-move
+                    "pp" #'dired-ranger-paste))
+#+end_src
+
+* applications
+** ellama
+#+begin_src emacs-lisp
+(use-package! ellama
+  :init
+  (setopt ellama-keymap-prefix "C-c e")
+  (setopt ellama-language "English")
+  (require 'llm-ollama)
+  (setopt ellama-provider
+          (make-llm-ollama
+           :chat-model "llama3.2"
+           :embedding-model "nomic-embed-text"
+           :default-chat-non-standard-params '(("num_ctx" . 8192))))
+  (setopt ellama-providers
+	  '(("zephyr" . (make-llm-ollama
+			 :chat-model "zephyr"
+			 :embedding-model "zephyr"))
+
+	    ("llama3.1" . (make-llm-ollama
+			   :chat-model "llama3.1"
+			   :embedding-model "llama3.1"))
+	    ("mixtral" . (make-llm-ollama
+			  :chat-model "mixtral"
+			  :embedding-model "mixtral"))))
+  (setopt ellama-naming-scheme 'ellama-generate-name-by-llm)
+  :config
+  (map! :leader
+        (:prefix ("e" . "ellama")
+         :desc "ask-about" "a" #'ellama-ask-about
+         :desc "chat" "c" #'ellama-chat
+         :desc "provider-select" "p" #'ellama-provider-select)))
+#+end_src
+
+** GPTel
+#+begin_src emacs-lisp
+(use-package! gptel
+  :disabled t
+  :commands (gptel gptel-send)
+  :config
+  (gptel-make-gemini "Gemini" :key (password-store-get "google/aistudio/apikey") :stream t)
+  (setq! gptel-default-mode #'org-mode)
+  (setq-default
+   gptel-model "gemini-pro"
+   gptel-backend (gptel-make-gemini "Gemini"
+                   :key (password-store-get "google/aistudio/apikey")
+                   :stream t))
+  (add-to-list 'gptel-directives '(translator . "I will give you some text from scientific paper. I want you to give me translation of the text into Korean. Here's the text: ")))
+#+end_src
+
+
+** emacs-slack
+:PROPERTIES:
+:ID:       f2c5c5cd-90c6-4101-8ecc-32541b1c2325
+:END:
+token 은 https://my.slack.com/customize 에 들어가서 우클릭후 inspect 를 눌러 developer tool 에 들어간후, console 에 =window.prompt("your api token is: ", TS.boot_data.api_token)= 를 통해 얻을수 있다.
+
+token 이 =xoxc= 로 시작하면, cookie 도 필요한데, developer tool 의 storage 탭에서 cookie 의 d 의 value 를 copy 한다.
+
+=:commands= 부분은 꼭 필요한데, 안하면, passphrase 입력하는 부분때문에 pass 인증전에 emacs 가 시작을 안한다.
+
+#+begin_src emacs-lisp
+(use-package! slack
+  :commands (slack-start)
+  :init
+  (setq! slack-buffer-emojify t)
+  (setq! slack-prefer-current-team t)
+  :config
+  (slack-register-team
+   :name "math study"
+   :default t
+   :token (password-store-get "slack-token/gmail")
+   :cookie (password-store-get "slack-token/gmail.cookie")
+   :subscribed-channels '(("general" "non-math-thoughts" "random" "예습"))
+   :full-and-display-names t))
+
+;; (use-package! ox-slack
+;;   :after slack)
+(use-package! copy-as-format
+  :after slack)
+#+end_src
+
+
+** anki-editor
+:PROPERTIES:
+:ID:       6c0dbfbd-e924-49b9-ba55-01cf606df3fb
+:END:
+#+begin_src emacs-lisp
+(use-package! anki-editor
+  :commands (anki-editor-mode)
+  :init
+  (push '("a" "Anki basic" entry
+          (file+headline org-anki-file "Dispatch")
+          "* %^{FRONT}\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Basic\n:ANKI_DECK: Mega\n:END:\n** Front\n%\\1\n** Back\n%i")
+        org-capture-templates)
+  (push '("A" "Anki cloze" entry
+          (file+headline org-anki-file "Dispatch")
+          "* %?\n:PROPERTIES:\n:ANKI_NOTE_TYPE: Cloze\n:ANKI_DECK: Mega\n:END:\n** Text\n%i** Extra\n")
+        org-capture-templates)
+  :config
+  (setq! anki-editor-create-decks t
+        anki-editor-org-tags-as-anki-tags t
+        anki-editor-use-math-jax t
+        anki-editor-break-consecutive-braces-in-latex t)
+  (defun anki-editor-cloze-region-auto-incr (&optional arg)
+    "Cloze region without hint and increase card number."
+    (interactive)
+    (anki-editor-cloze-region my-anki-editor-cloze-number "")
+    (setq my-anki-editor-cloze-number (1+ my-anki-editor-cloze-number))
+    (forward-sexp))
+  (defun anki-editor-cloze-region-dont-incr (&optional arg)
+    "Cloze region without hint using the previous card number."
+    (interactive)
+    (anki-editor-cloze-region (1- my-anki-editor-cloze-number) "")
+    (forward-sexp))
+  (defun anki-editor-reset-cloze-number (&optional arg)
+    "Reset cloze number to ARG or 1"
+    (interactive)
+    (setq my-anki-editor-cloze-number (or arg 1)))
+  (defun anki-editor-push-tree ()
+    "Push all notes under a tree."
+    (interactive)
+    (anki-editor-push-notes '(4)))
+  (general-def
+    :prefix-command 'js/anki
+    :prefix-map 'js/anki-map
+    "c" #'anki-editor-cloze-region-dont-incr
+    "C" #'anki-editor-cloze-region-auto-incr
+    "r" #'anki-editor-reset-cloze-number
+    "p" #'anki-editor-push-tree)
+  (general-def
+    "C-c d" #'js/anki)
+  ;; Initialize
+  (anki-editor-reset-cloze-number))
+#+end_src
+
+** mw-thesaurus
+:PROPERTIES:
+:ID:       38dc4ea1-9bca-43f9-aabe-5024ab7a8999
+:END:
+#+begin_src emacs-lisp
+(use-package! mw-thesaurus
+  :general (general-s "d" #'mw-thesaurus-lookup-dwim))
+#+end_src
+
+
+** elfeed
+:PROPERTIES:
+:ID:       7fa1ff41-051e-45c7-9b83-f140f0921147
+:END:
+#+begin_src emacs-lisp
+(after! elfeed
+  (setq! elfeed-db-directory "~/Dropbox/elfeed"
+        rmh-elfeed-org-files (list (expand-file-name "elfeed.org" elfeed-db-directory))
+        elfeed-search-filter "@1-month-ago +unread")
+  (map! :map elfeed-search-mode-map
+        :n "o" #'elfeed-search-browse-url
+        :n "r" #'elfeed-update)
+  (map! :map elfeed-show-mode-map
+        :n "C-j" nil
+        :n "C-k" nil
+        :n "M-j" #'elfeed-show-next
+        :n "M-k" #'elfeed-show-prev))
+#+end_src
+
+
+** nov
+:PROPERTIES:
+:ID:       057d3894-b92d-4c39-a66c-609877ff07b3
+:END:
+#+begin_src emacs-lisp
+(use-package! nov
+  :after org-noter
+  :hook (nov-mode . variable-pitch-mode)
+  :mode ("\\.\\(epub\\|mobi\\)\\'" . nov-mode)
+  :init
+  (defun nov/font-setup ()
+    (face-remap-add-relative 'variable-pitch :family "Literata"
+                             :height 1.2)
+    (face-remap-add-relative 'defaut :height 12)
+    (setq-local line-spacing 0.2
+                next-screen-context-lines 4
+                shr-use-colors nil)
+    (visual-fill-column-mode 1)
+    (hl-line-mode -1))
+  (add-hook 'nov-mode-hook #'nov/font-setup)
+  :config
+  (setq! nov-text-width 90)
+  (map! :map nov-mode-map
+        :n "M-j" #'nov-next-document
+        :n "M-k" #'nov-previous-document
+        ;; these keys conflic with evil mode
+        :n "SPC" nil
+        :n "C-j" nil
+        :n "C-k" nil
+        :n "t" nil
+        :n "h" nil
+        :n "l" nil
+        :n "T" #'nov-goto-toc))
+  ;; (require 'justify-kp)
+  ;; (setq! nov-text-width 90)
+  ;; ;; (setq! nov-text-width t)
+  ;; (defun nov/window-configuration-change-hook ()
+  ;;   (display-line-numbers-mode -1)
+  ;;   (nov/justify-text)
+  ;;   (remove-hook! 'window-configuration-change-hook
+  ;;     'nov/window-configuration-change-hook t))
+  ;; (defun nov/justify-text ()
+  ;;   (if (get-buffer-window)
+  ;;       (let ((max-width (pj-line-width))
+  ;;             buffer-read-only)
+  ;;         (save-excursion
+  ;;           (goto-char (point-min))
+  ;;           (while (not (eobp))
+  ;;             (when (not (looking-at "^[[:space:]]*$"))
+  ;;               (goto-char (line-end-position))
+  ;;               (when (> (shr-pixel-column) max-width)
+  ;;                 (goto-char (line-beginning-position))
+  ;;                 (pj-justify)))
+  ;;             (forward-line 1))))
+  ;;     (add-hook! 'window-configuration-change-hook
+  ;;                'nov/window-configuration-change-hook
+  ;;                nil t)))
+  ;; (add-hook! 'nov-post-html-render-hook #'nov/justify-text))
+#+end_src
+
+
+** vuiet/last.fm
+:PROPERTIES:
+:ID:       46040c3e-6f1a-43a9-891f-f9bf576e7c12
+:END:
+need key authentication info in =.config/lastfmrc=, get the info from https://www.last.fm/api/accounts
+
+#+begin_src emacs-lisp
+(use-package! lastfm
+  :disabled t)
+(use-package! vuiet
+  :disabled t)
+#+end_src
+
+** pass
+:PROPERTIES:
+:ID:       07a6511a-d141-4098-8602-719e444c9b53
+:END:
+#+begin_src emacs-lisp
+(use-package! pass
+  :commands (pass)
+  :config
+  (map! :map pass-mode-map
+        :n "j" #'pass-next-entry
+        :n "k" #'pass-prev-entry
+        :n "D" #'pass-kill
+        :n "i" #'pass-insert
+        :n "r" #'pass-rename
+        :n "<return>" #'pass-view
+        :n "q" #'pass-quit)
+  (setq! pass-show-keybindings nil))
+#+end_src
+
+** vterm
+:PROPERTIES:
+:ID:       8ce4b63f-c49c-498c-b6a2-ea3f133c5d87
+:END:
+#+begin_src emacs-lisp
+(use-package! vterm
+  :commands +vterm/toggle
+  :config
+  (setq! vterm-shell "/bin/zsh"))
+#+end_src
+
+** trashed
+:PROPERTIES:
+:ID:       3ace3a75-51e9-4694-8806-1ff8bf928e09
+:END:
+#+begin_src emacs-lisp
+(use-package! trashed
+  :commands (trashed)
+  :config
+  (evil-collection-init 'trashed)
+  (map! :map trashed-mode-map
+        :n "<tab>" #'trashed-mark
+        :n "<backtab>" #'trashed-mark))
+#+end_src
+
+** mathpix
+:PROPERTIES:
+:ID:       3bc3162a-d9d1-4a89-954b-d27f6699612d
+:END:
+#+begin_src emacs-lisp
+(use-package! mathpix.el
+  :commands (mathpix-screenshot)
+  :general
+  (general-def "C-c m" #'mathpix-screenshot)
+  :init
+  (require 'password-store)
+  (custom-set-variables
+   '(mathpix-app-id (password-store-get "mathpix/app-id"))
+   '(mathpix-app-key (password-store-get "mathpix/app-key"))
+   '(mathpix-screenshot-method "maim -s %s")))
+#+end_src
+
