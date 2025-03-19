@@ -1,0 +1,22 @@
+[pyprland]
+plugins = [
+    "scratchpads",
+    "monitors"
+]
+
+[scratchpads.term]
+# command = "alacritty --class dropdown -e zsh -c \"tmux new-session -A -s default\""
+command = "foot -a dropdown zsh -c \"tmux new-session -A -s default\""
+class = "dropdown"
+animation = "fromTop"
+margin = 50
+# unfocus = "hide"
+lazy = false
+size = "75% 80%"
+# max_size = "1920px 100%"
+
+[monitors]
+unknown = "wlrlui"
+
+[monitors.placement."HP"]
+leftOf = "eDP-1"
