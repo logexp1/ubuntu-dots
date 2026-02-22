@@ -37,16 +37,22 @@ if [[ $# -eq 0 ]]; then
     exit 0
 fi
 
-for mod in "$@"; do
-    if ! is_valid_module "$mod"; then
-        log_error "install" "Unknown module: $mod"
-        echo ""
-        usage
-        exit 1
-    fi
-done
+selected=()
+if [[ "$1" == "all" ]]; then
+    selected=("${MODULES[@]}")
+else
+    for mod in "$@"; do
+        if ! is_valid_module "$mod"; then
+            log_error "install" "Unknown module: $mod"
+            echo ""
+            usage
+            exit 1
+        fi
+    done
+    selected=("$@")
+fi
 
-for mod in "$@"; do
+for mod in "${selected[@]}"; do
     echo ""
     source "$INSTALL_DIR/${mod}.sh"
     run
