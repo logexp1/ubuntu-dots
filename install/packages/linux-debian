@@ -19,6 +19,7 @@ libgnutls28-dev
 libtree-sitter-dev
 libncurses-dev
 stow
+zsh
 hyprpolkitagent
 pywal pipx
 pyprland pipx
