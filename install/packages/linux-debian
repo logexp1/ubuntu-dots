@@ -1,3 +1,5 @@
+git
+vim
 elpa-emacsql-sqlite
 ripgrep
 sqlite3
@@ -9,4 +11,3 @@ pass-git-helper
 foot
 tmux
 udiskie
-emacs
