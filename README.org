@@ -1,0 +1,80 @@
+#+TITLE: Dots
+#+DESCRIPTION: Personal dotfiles and machine setup automation
+
+* Overview
+
+This repository manages personal dotfiles via [[https://www.gnu.org/software/stow/][GNU Stow]] and provides
+modular install scripts for setting up a new machine.
+
+Each top-level directory (except =install/=) is a stow package that gets
+symlinked into =~/=.
+
+* Prerequisites
+- git
+- GPG private key for unix pass configuration
+
+* Usage
+
+#+begin_src sh
+# Show available modules
+./install.sh
+
+# Run all modules
+./install.sh all
+
+# Run specific modules
+./install.sh packages gpg git stow
+
+# Just restow dotfiles
+./install/stow.sh
+
+# Unstow dotfiles
+./install/stow.sh --unstow
+#+end_src
+
+* Modules
+
+| Module       | Description                                     |
+|--------------+-------------------------------------------------|
+| =packages=   | Install system packages from OS-specific list   |
+| =gpg=        | Import GPG keys and initialize password store   |
+| =git=        | Configure global git settings                   |
+| =emacs=      | Build Emacs from source                         |
+| =doom=       | Install and configure Doom Emacs                |
+| =systemd=    | Enable user systemd services (Linux only)       |
+| =browserpass= | Build and install browserpass-native            |
+| =hyprpm=     | Set up Hyprland plugins                         |
+| =stow=       | Symlink dotfiles into =~/= via GNU Stow        |
+
+When running =./install.sh all=, modules execute in the order listed above.
+
+* Stow Packages
+
+Every top-level directory except =install/= is treated as a stow package.
+Adding a new directory automatically includes it — no configuration needed.
+
+The =stow= module backs up any existing (non-symlink) directories that would
+conflict before stowing.
+
+* Package Lists
+
+OS-specific package lists live in =install/packages/=. The file is selected
+automatically based on the detected OS.
+
+#+begin_example
+install/packages/
+├── linux-debian    # apt
+├── linux-arch      # pacman
+└── macos           # brew
+#+end_example
+
+Each line is a package name, with an optional second column for a non-default
+package manager:
+
+#+begin_src text
+ripgrep
+tmux
+some-aur-package yay
+tree-sitter-cli npm
+#+end_src
+
