@@ -13,17 +13,17 @@ run() {
     if [[ -d "$doom_dir" ]]; then
         log_step "doom" "$doom_dir already exists, removing..."
         rm -rf "$doom_dir"
-    else
-        git clone --depth 1 https://github.com/doomemacs/doomemacs "$doom_dir"
-    fi
+	fi
 
-    log_step "doom" "Running doom install..."
-    "$doom_dir/bin/doom" install
+    git clone --depth 1 https://github.com/doomemacs/doomemacs "$doom_dir"
 
-    log_step "doom" "Syncing Doom Emacs..."
-    "$doom_dir/bin/doom" sync
+	log_step "doom" "Running doom install..."
+	"$doom_dir/bin/doom" install
 
-    log_step "doom" "Done."
+	log_step "doom" "Syncing Doom Emacs..."
+	"$doom_dir/bin/doom" sync
+
+	log_step "doom" "Done."
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
