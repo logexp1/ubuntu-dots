@@ -43,7 +43,10 @@ install_with() {
         pip)
             pip install --user "$pkg"
             ;;
-        cargo)
+		pipx)
+			pipx install "$pkg"
+			;;
+		cargo)
             cargo install "$pkg"
             ;;
         *)
