@@ -25,13 +25,17 @@ run() {
         return 1
     fi
 
+    # Resolve full fingerprint
+    local fingerprint
+    fingerprint="$(gpg --list-keys --with-colons "$KEY_ID" | awk -F: '/^fpr:/ { print $10; exit }')"
+
     # Set trust to ultimate
     log_step "gpg" "Setting key trust to ultimate..."
-    echo "${KEY_ID}:6:" | gpg --import-ownertrust
+    echo "${fingerprint}:6:" | gpg --import-ownertrust
 
     # Remove expiration
     log_step "gpg" "Removing key expiration..."
-    gpg --quick-set-expire "$KEY_ID" 0
+    gpg --quick-set-expire "$fingerprint" 0
 
     # Initialize pass with this key
     log_step "gpg" "Initializing password store..."
