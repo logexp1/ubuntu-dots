@@ -2,12 +2,28 @@
 set -e
 source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/common.sh"
 
-PACKAGES=(emacs terminal wm remap common)
+EXCLUDE=(install)
 TARGET="$HOME"
 TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 
+discover_packages() {
+    local packages=()
+    for dir in "$BASEDIR"/*/; do
+        [[ ! -d "$dir" ]] && continue
+        local name
+        name="$(basename "$dir")"
+        local excluded=false
+        for ex in "${EXCLUDE[@]}"; do
+            [[ "$name" == "$ex" ]] && excluded=true && break
+        done
+        $excluded || packages+=("$name")
+    done
+    echo "${packages[@]}"
+}
+
 backup_conflicts() {
-    for pkg in "${PACKAGES[@]}"; do
+    local packages=("$@")
+    for pkg in "${packages[@]}"; do
         local pkg_dir="$BASEDIR/$pkg"
         [[ -d "$pkg_dir" ]] || continue
 
@@ -40,19 +56,39 @@ backup_conflicts() {
 }
 
 run() {
-    log_step "stow" "Stowing dotfiles..."
+    log_step "stow" "Discovering stow packages..."
     require_cmd stow
 
-    backup_conflicts
-    stow -Rvt "$TARGET" -d "$BASEDIR" "${PACKAGES[@]}"
+    local packages
+    read -ra packages <<< "$(discover_packages)"
+
+    if [[ ${#packages[@]} -eq 0 ]]; then
+        log_warn "stow" "No stow packages found."
+        return 0
+    fi
+
+    log_step "stow" "Packages: ${packages[*]}"
+
+    backup_conflicts "${packages[@]}"
+    stow -Rvt "$TARGET" -d "$BASEDIR" "${packages[@]}"
     log_step "stow" "Done."
 }
 
 unstow() {
-    log_step "stow" "Unstowing dotfiles..."
+    log_step "stow" "Discovering stow packages..."
     require_cmd stow
 
-    stow -Dvt "$TARGET" -d "$BASEDIR" "${PACKAGES[@]}"
+    local packages
+    read -ra packages <<< "$(discover_packages)"
+
+    if [[ ${#packages[@]} -eq 0 ]]; then
+        log_warn "stow" "No stow packages found."
+        return 0
+    fi
+
+    log_step "stow" "Packages: ${packages[*]}"
+
+    stow -Dvt "$TARGET" -d "$BASEDIR" "${packages[@]}"
     log_step "stow" "Done."
 }
 
