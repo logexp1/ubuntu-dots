@@ -1,6 +1,6 @@
 git
 vim
-# elpa-emacsql-sqlite
+elpa-emacsql-sqlite
 ripgrep
 sqlite3
 fd-find
