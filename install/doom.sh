@@ -11,8 +11,8 @@ run() {
     require_cmd emacs
 
     if [[ -d "$doom_dir" ]]; then
-        log_step "doom" "$doom_dir already exists, upgrading..."
-        "$doom_dir/bin/doom" upgrade
+        log_step "doom" "$doom_dir already exists, removing..."
+        rm -rf "$doom_dir"
     else
         git clone --depth 1 https://github.com/doomemacs/doomemacs "$doom_dir"
     fi
