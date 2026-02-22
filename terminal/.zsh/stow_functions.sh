@@ -5,6 +5,6 @@ restow() {
 }
 
 unstow() {
-	cd ~/mydots && \
+	cd ~/ubuntu-dots && \
 		stow -Dvt ~/ emacs terminal wm remap common scripts
 }
