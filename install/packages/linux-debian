@@ -13,3 +13,7 @@ tmux
 udiskie
 autoconf
 texinfo
+libgccjit13-dev
+libgnutls28-dev
+libtree-sitter-dev
+libncurses-dev

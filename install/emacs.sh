@@ -47,8 +47,18 @@ run() {
         --with-xpm
 	)
 
-    log_step "emacs" "bootstrapping"
-    make bootstrap
+    log_step "emacs" "Bootstrapping..."
+
+    local nproc
+    if command -v nproc &>/dev/null; then
+        nproc=$(nproc)
+    elif command -v sysctl &>/dev/null; then
+        nproc=$(sysctl -n hw.ncpu)
+    else
+        nproc=1
+    fi
+
+    make -C "$emacs_src" bootstrap -j"$nproc"
 
     log_step "emacs" "Installing (requires sudo)..."
     sudo make -C "$emacs_src" install
