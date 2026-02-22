@@ -19,11 +19,6 @@ run() {
     log_step "doom" "Running doom install..."
     "$doom_dir/bin/doom" install
 
-    log_step "doom" "Restowing config files..."
-    rm -f "$doom_config"/*
-    source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/stow.sh"
-    run
-
     log_step "doom" "Syncing Doom Emacs..."
     "$doom_dir/bin/doom" sync
 
