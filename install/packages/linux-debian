@@ -3,6 +3,7 @@ vim
 elpa-emacsql-sqlite
 ripgrep
 sqlite3
+libsqlite3-dev
 fd-find
 fcitx5-hangul
 onedrive
@@ -18,4 +19,7 @@ libgnutls28-dev
 libtree-sitter-dev
 libncurses-dev
 stow
+hyprpolkitagent
 pywal pipx
+pyprland pipx
+hyprland-autoname-workspaces cargo
