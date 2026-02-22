@@ -12,11 +12,9 @@ run() {
 
     hyprpm update
     hyprpm add https://github.com/hyprwm/hyprland-plugins
-    hyprpm add https://github.com/pyt0xic/hyprfocus
-    hyprpm enable hyprfocus
-    hyprpm reload
+	hyprpm reload
 
-    log_step "hyprpm" "Done."
+	log_step "hyprpm" "Done."
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
