@@ -8,4 +8,5 @@ common/.gnupg/*/
 common/.gnupg/*db*
 common/.gnupg/*.kbx*
 emacs/.config/doom/config.el
-common/.config/onedrive/*.hash
+common/.config/onedrive/*
+!common/.config/onedrive/config
