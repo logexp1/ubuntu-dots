@@ -27,3 +27,5 @@ pywal pipx
 pyprland pipx
 hyprland-autoname-workspaces cargo
 eza cargo
+jupyter
+webext-browserpass
