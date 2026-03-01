@@ -3,7 +3,6 @@
 :PROPERTIE:
 :ID:       609afc78-c5a2-4b87-9d56-25e594f3ba61
 :END:
-# TODO marked sections are excluded from being tangled
 ** username and e-mail
 :PROPERTIES:
 :ID:       0ad75442-4324-4793-af29-0f6b1dbde0ce
@@ -54,9 +53,15 @@
   ;; (setenv "ESHELL" "bash")
   ;; (add-to-list 'tramp-remote-process-environment "PS1=")
   ;; reads remote's PATH variable
+
+  ;; followings are required!!
   (add-to-list 'tramp-connection-properties
                (list (regexp-quote "/sshx:remote")
                      "remote-shell" "/bin/zsh"))
+
+  (add-to-list 'tramp-connection-properties
+               (list (regexp-quote "/ssh:jupyter")
+                     "remote-shell" "/bin/bash"))
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 #+end_src
 
@@ -234,6 +239,8 @@
    :n "a" #'evil-append-line
    :n "A" #'evil-append
    :n "M" #'evil-set-marker
+   :n "n" #'(lambda() (interactive) (search-forward (car consult--line-history)))
+   :n "N" #'(lambda() (interactive) (search-backward (car consult--line-history)))
    :v "c" #'evil-change
    :i "C-w" #'evil-delete-backward-word
    :i "C-o" #'evil-execute-in-normal-state
@@ -258,19 +265,19 @@
    :ni "C-b" #'evil-switch-to-windows-last-buffer)
 
   (setq! evil-move-cursor-back nil
-        evil-move-beyond-eol t
-        evil-ex-visual-char-range t)
+         evil-move-beyond-eol t
+         evil-ex-visual-char-range t)
   ;; default is normal state for all modes
   (setq! evil-normal-state-modes (append evil-emacs-state-modes
-                                        evil-normal-state-modes)
-        evil-emacs-state-modes nil
-        evil-motion-state-modes nil)
+                                         evil-normal-state-modes)
+         evil-emacs-state-modes nil
+         evil-motion-state-modes nil)
 
   (setq! evil-normal-state-cursor '(box "dark gray")
-        evil-motion-state-cursor '(box "YellowGreen")
-        evil-insert-state-cursor '(bar "orchid")
-        evil-emacs-state-cursor '(bar "Red")
-        evil-visual-state-cursor '(box "#F86155"))
+         evil-motion-state-cursor '(box "YellowGreen")
+         evil-insert-state-cursor '(bar "orchid")
+         evil-emacs-state-cursor '(bar "Red")
+         evil-visual-state-cursor '(box "#F86155"))
 
   ;; escape from minibuffer
   (map! :map (minibuffer-local-map
@@ -421,7 +428,7 @@ I really prefer default doom-one theme...
 size 를 float 로 설정하면 hidpi setting 을 따르게 된다.
 #+begin_src emacs-lisp
 (setq!
- doom-font (font-spec :family "Fira Code" :size 10.0)
+ doom-font (font-spec :family "Cascadia Code" :size 10.0)
  ;; doom-font (font-spec :family "Roboto Mono" :size 15)
  doom-variable-pitch-font (font-spec :family "Noto Sans CJK KR")
  ;; doom-serif-font (font-spec :family "Libre Baskerville")
@@ -476,27 +483,29 @@ consults grammatical error
 makes life much easier
 
 ** auto saving
-:PROPERTIES:
-:ID:       c1274c59-ee89-40e3-b1e8-badbb2e67c1d
-:END:
 #+begin_src emacs-lisp
 (setq! auto-save-interval 30
       auto-save-timeout 5
       ;; don't create auto-save ~ files
       auto-save-default nil)
 
-(defun js/save ()
-  "If in a file buffer and not executing/recording a macro, save."
-  (when (and (buffer-file-name)
-             (not (or executing-kbd-macro defining-kbd-macro)))
-    (let ((inhibit-message t))
-      (save-buffer))))
+;; (defun js/save ()
+;;   "If in a file buffer and not executing/recording a macro, save."
+;;   (when (and (buffer-file-name)
+;;              (not (or executing-kbd-macro defining-kbd-macro)))
+;;     (let ((inhibit-message t))
+;;       (save-buffer))))
 
 ;; save whenever evil exists insert mode
 ;; deprecated since it causes serious lag when using doom emacs
 ;; (add-hook! 'evil-insert-state-exit-hook #'js/save)
 
 (auto-save-visited-mode)
+
+(defadvice basic-save-buffer (around auto-confirm compile activate)
+  (cl-letf (((symbol-function 'yes-or-no-p) (lambda (&rest args) t))
+            ((symbol-function 'y-or-n-p) (lambda (&rest args) t)))
+    ad-do-it))
 #+end_src
 
 ** navigation helpers
@@ -1553,9 +1562,9 @@ reference : [[https://gist.github.com/Gavinok/50f804ea5a2856ee52dee1ba02e97cb9]]
   :demand t
   :defer 5
   :custom
-  ((appt-message-warning-time 15)
+  ((appt-message-warning-time 10)
    (appt-display-duration 30)
-   (appt-display-interval 5)
+   (appt-display-interval 10)
    (appt-disp-window-function #'my/appt-display)
    (appt-delete-window-function #'ignore))
   :init
@@ -1884,7 +1893,6 @@ _k_ : previous
         :n "P" #'pdf-view-goto-page
         :n "gg" #'pdf-view-first-page
         :n "G" #'pdf-view-last-page
-        :n "s" #'js/toggle-pdf-view-auto-slice-minor-mode
         :n "m" #'pdf-view-midnight-minor-mode
         :n "M" #'pdf-view-set-slice-using-mouse
         :n "C" #'js/pdf-view-continuous-toggle
@@ -1959,6 +1967,7 @@ _k_ : previous
   :general (general-def js/toggle-map "l" #'org-cdlatex-mode)
   :commands org-cdlatex-mode
   :config
+  (setq! org-pretty-entities-include-sub-superscripts nil)
   (setq! cdlatex-env-alist
          '(("equation*" "\\begin{equation*}\n?\n\\end{equation*}" nil)
            ("matrix" "\\left[\\begin{matrix}?\\end{matrix}\\right]" nil)
@@ -2556,6 +2565,7 @@ Install docset with =dash-docs-install-docset=, if not found, try =dash-docs-ins
         "C-c C-c" #'org-edit-src-exit))
 #+end_src
 
+
 *** org-babel asynchronous
 :PROPERTIES:
 :ID:       e380df61-32e4-4954-b79c-5ace9200d9f7
@@ -2623,8 +2633,8 @@ Git gutter:
 ** dirvish
 #+begin_src emacs-lisp
 (use-package! dirvish
-  :init
-  (put 'dired-find-alternate-file 'disabled nil)
+  ;; :init
+  ;; (put 'dired-find-alternate-file 'disabled nil)
   :config
   (dirvish-override-dired-mode)
   (remove-hook! 'dired-mode-hook #'dired-omit-mode)
@@ -2794,6 +2804,31 @@ unzip/zip things
 #+end_src
 
 * applications
+
+** eca - editor code assistant
+어떤 모델이 있는지 보려면, eca-session 에서 이걸 eval 하면 된다.
+#+begin_src emacs-lisp :tangle no
+(eca--session-models (eca-session))
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package! eca
+  :commands eca
+  :custom
+  ((eca-chat-prompt-separator "\n==============================================")
+   (eca-chat-custom-model "github-copilot/claude-opus-4.6")
+   (eca-chat-custom-agent "plan"))
+  :config
+  (map! :map eca-chat-mode-map
+        "<return>" nil
+        "RET" nil
+        "C-," nil
+        "C-c C-," nil
+        "C-c m" #'eca-mcp-details
+        "C-c C-," #'markdown-insert-gfm-code-block
+        "C-c C-c" #'eca-chat--key-pressed-return))
+#+end_src
+
 ** ellama
 #+begin_src emacs-lisp
 (use-package! ellama
@@ -3057,7 +3092,6 @@ need key authentication info in =.config/lastfmrc=, get the info from https://ww
 :END:
 #+begin_src emacs-lisp
 (use-package! vterm
-  :disabled t
   :commands +vterm/toggle
   :config
   (setq! vterm-shell "/bin/zsh"))
@@ -3093,4 +3127,3 @@ need key authentication info in =.config/lastfmrc=, get the info from https://ww
    '(mathpix-app-key (password-store-get "mathpix/app-key"))
    '(mathpix-screenshot-method "maim -s %s")))
 #+end_src
-

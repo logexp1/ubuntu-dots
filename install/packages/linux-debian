@@ -1,5 +1,6 @@
 git
 vim
+rustup
 elpa-emacsql-sqlite
 ripgrep
 sqlite3
@@ -21,6 +22,8 @@ libncurses-dev
 stow
 zsh
 hyprpolkitagent
+fonts-cascadia-code
 pywal pipx
 pyprland pipx
 hyprland-autoname-workspaces cargo
+eza cargo

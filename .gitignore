@@ -1,0 +1,11 @@
+.DS_Store
+.idea
+*.log
+tmp/
+*.backup
+.#*
+common/.gnupg/*/
+common/.gnupg/*db*
+common/.gnupg/*.kbx*
+emacs/.config/doom/config.el
+common/.config/onedrive/*.hash

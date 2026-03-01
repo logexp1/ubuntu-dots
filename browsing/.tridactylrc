@@ -1,0 +1,125 @@
+# reset
+sanitise tridactyllocal tridactylsync
+
+# colorscheme
+colourscheme dark
+
+# * general
+set newtab about:blank
+set hintchars fdsqjklmrezauiopwxcvghtybn
+# prevent automatic focus on textfield
+# set allowautofocus false
+set hintuppercase false
+set minincsearchlen 2
+set searchengine duckduckgo
+set smoothscroll true
+set tabopencontaineraware true
+set hintuppercase true
+
+# * search
+set searchurls.google https://www.google.com/search?q=%s&num=100
+set searchurls.googlerecent https://www.google.com/search?q=%s&num=100&tbs=qdr:y
+set searchurls.reddit https://www.reddit.com/search/?q=%s
+set searchurls.duckduckgo https://duckduckgo.com/?kp=-2&q=%s&ia=web
+set searchurls.github https://github.com/search?q=%s
+set searchurls.namu https://namu.wiki/Search?q=%s
+set searchurls.arch https://wiki.archlinux.org/index.php?search=%s
+set searchurls.youtube https://www.youtube.com/results?search_query=%s
+set searchurls.you https://you.com/search?q=%s
+set searchurls.brave https://search.brave.com/search?q=%s
+
+# * commands
+
+# pass current url to command
+command withurl composite get_current_url |
+
+# replace binds with another prefix
+command bindreplaceprefix js -d% const [_, oldPrefix, newPrefix] = JS_ARGS; Object.entries(tri.config.get('nmaps')).map(([key, cmd]) => ({ key, cmd })).filter(({ key }) => key.startsWith(oldPrefix)).map(({ key, cmd }) => { tri.excmds.bind('--mode=normal', key.replace(oldPrefix, newPrefix), cmd); }) %
+
+# show command line notification
+command notify js -d% tri.excmds.fillcmdline_tmp(3000, JS_ARGS.join(' ').trim()); %
+
+# show os notification
+command notifyos js -d% tri.native.run(`notify-send "${JS_ARGS.join(' ').trim()}"`); %
+
+# show js consosole notification
+command notifyjs js -d% console.log("%c N.log ", "background: #d8dee9; color: #2e3440; font-weight: bold;", JS_ARGS.join(' ').trim()); %
+
+# Inspect JavaScript object in console
+command jsp js -p tri.excmds.js(`console.dir(${JS_ARG})`);
+command jsbp js -p tri.excmds.js(`console.dir(${JS_ARG})`);
+
+# * keybinding
+unbind a
+unbind b
+unbind d
+unbind r
+unbind o
+bind qr composite source; notifyos "Tridactyl reloaded"
+# close other tabs
+bind qo tabonly
+bind qR restart
+bind qq qall
+bind i focusinput
+
+# search engines
+bind og fillcmdline tabopen google
+bind oG fillcmdline tabopen googlerecent
+bind or fillcmdline tabopen reddit
+bind ob fillcmdline tabopen github
+bind ow fillcmdline tabopen namu
+bind oa fillcmdline tabopen arch
+bind oy fillcmdline tabopen youtube
+
+
+bind <C-j> scrollpage 0.5
+bind d scrollpage 0.5
+bind <C-k> scrollpage -0.5
+bind u scrollpage -0.5
+
+# bind ; fillcmdline_notrail
+# bin : fillcmdline
+bind ,c viewconfig
+bind ,C tabopen about:config
+bind ,e tabopen about:addons
+bind ,a fillcmdline apropos
+bind ,h help
+# opened tabs
+bind ,s fillcmdline tab
+bind ,S fillcmdline taball
+bind ,r viewsource
+bind ,u tabopen about:support
+bind ,p tabopen about:profiles
+
+bind bb current_url bmark
+bind bt fillcmdline bmarks -t
+
+# open at new tab
+bind af hint -t
+# link images
+bind ai hint -i
+bind aI hint -I
+bind ap hint -p
+# save (download) link
+bind as hint -s
+# focus element (to scroll, etc)
+bind a; hint -;
+bind aw hint -w
+
+bind --mode=ex <C-j> ex.next_completion
+bind --mode=ex <C-k> ex.prev_completion
+
+# search
+bind / fillcmdline find
+bind n findnext 1
+bind N findnext -1
+
+# yank current url
+bind yy withurl yank
+
+# cursor to beginning, end of insert text box
+bind --mode=insert <C-s> text.beginning_of_line
+bind --mode=insert <C-e> text.end_of_line
+
+# disable for jupyter notebook
+seturl .*:[0-9]+.*\.ipynb superignore true

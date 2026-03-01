@@ -43,7 +43,7 @@ zinit light Aloxaf/fzf-tab
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
 # custom variables
-export PATH=$PATH:/usr/local/go/bin:$HOME/.local/bin
+export PATH=$PATH:/usr/local/go/bin:$HOME/.local/bin:$HOME/.cargo/bin
 alias k=$HOME/build/k9s/execs/k9s
 alias ls="eza -a"
 alias ll="eza -al --color=always --icons --group-directories-first"
