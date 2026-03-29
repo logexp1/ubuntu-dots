@@ -234,3 +234,5 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 export KALEIDOSCOPE_DIR=/home/jisoo/build/Kaleidoscope
+# for nvim
+export PATH="$PATH:/opt/nvim-linux-x86_64/bin"

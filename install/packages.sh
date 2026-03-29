@@ -59,6 +59,11 @@ install_with() {
 run() {
     log_step "packages" "Installing packages for $OS..."
 
+    if [[ "$OS" == "linux-debian" ]]; then
+        log_step "packages" "Updating apt package index..."
+        sudo apt update -qq
+    fi
+
     local pkg_file="$PACKAGES_DIR/$OS"
     if [[ ! -f "$pkg_file" ]]; then
         log_error "packages" "No package list found at $pkg_file"
