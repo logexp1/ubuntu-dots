@@ -24,6 +24,10 @@ install_with() {
     case "$pm" in
         apt)
             sudo apt install -y "$pkg"
+            if [[ "$pkg" == "npm" ]]; then
+                log_step "packages" "Configuring npm prefix to ~/.local..."
+                npm config set prefix "$HOME/.local"
+            fi
             ;;
         pacman)
             sudo pacman -S --noconfirm "$pkg"
@@ -44,10 +48,10 @@ install_with() {
             pip install --user "$pkg"
             ;;
 		pipx)
-			pipx install "$pkg"
+			pipx install "$pkg" || pipx upgrade "$pkg"
 			;;
 		cargo)
-            cargo install "$pkg"
+            cargo install "$pkg" --locked
             ;;
         *)
             log_error "packages" "Unknown package manager: $pm"
@@ -63,6 +67,7 @@ run() {
         log_step "packages" "Updating apt package index..."
         sudo apt update -qq
     fi
+
 
     local pkg_file="$PACKAGES_DIR/$OS"
     if [[ ! -f "$pkg_file" ]]; then

@@ -8,3 +8,4 @@ user_pref("gfx.x11-egl.force-enabled", true);
 user_pref("dom.ipc.processCount.file", 4);
 user_pref("widget.dmabuf.force-enabled", true);
 user_pref("media.hardware-video-decoding.force-enabled", true);
+user_pref("extensions.autoDisableScopes", 0);

@@ -31,3 +31,7 @@ jupyter
 webext-browserpass
 nodejs
 npm
+yaml-language-server npm
+sshfs
+uv pipx
+podman
