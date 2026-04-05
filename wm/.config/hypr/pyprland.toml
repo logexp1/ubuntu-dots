@@ -16,6 +16,15 @@ match_by = "class"
 size = "75% 80%"
 # max_size = "1920px 100%"
 
+[scratchpads.kitty]
+command = "kitty --class dropdown-kitty --session ~/.config/kitty/sessions/default.conf"
+class = "dropdown-kitty"
+animation = "fromTop"
+margin = 50
+lazy = true
+match_by = "class"
+size = "75% 80%"
+
 [monitors]
 unknown = "wlrlui"
 

@@ -22,6 +22,7 @@ option_1="󰍺 Whole Screen"
 option_2="󰍹 Active Screen"
 option_3="󱣴 Capture Area"
 
+copy='󰆐 Copy'
 save=' Save'
 edit='󱛦 Edit'
 
@@ -67,7 +68,7 @@ copy_save_editor_cmd() {
 
 # Ask for confirmation
 copy_save_editor_exit() {
-    echo -e "$save\n$edit" | copy_save_editor_cmd
+    echo -e "$copy\n$save\n$edit" | copy_save_editor_cmd
 }
 
 # Confirm and execute

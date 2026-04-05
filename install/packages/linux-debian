@@ -35,3 +35,4 @@ yaml-language-server npm
 sshfs
 uv pipx
 podman
+fzf

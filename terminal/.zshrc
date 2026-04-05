@@ -16,8 +16,10 @@ zstyle ':z4h:' auto-update-days '28'
 # Keyboard type: 'mac' or 'pc'.
 zstyle ':z4h:bindkey' keyboard  'pc'
 
-# Start tmux if not already in tmux.
-zstyle ':z4h:' start-tmux command tmux -u new -A -D -t z4h
+# Start tmux if not already in tmux — skip when running inside kitty.
+if [[ -z "$KITTY_WINDOW_ID" ]]; then
+    zstyle ':z4h:' start-tmux command tmux -u new -A -D -t z4h
+fi
 
 # Whether to move prompt to the bottom when zsh starts and on Ctrl+L.
 zstyle ':z4h:' prompt-at-bottom 'no'
@@ -234,5 +236,3 @@ fi
 unset __conda_setup
 # <<< conda initialize <<<
 export KALEIDOSCOPE_DIR=/home/jisoo/build/Kaleidoscope
-# for nvim
-export PATH="$PATH:/opt/nvim-linux-x86_64/bin"
