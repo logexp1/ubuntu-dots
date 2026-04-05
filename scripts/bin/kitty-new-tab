@@ -1,0 +1,26 @@
+#!/bin/bash
+# Create a new kitty tab, prompting for name first.
+# Press Enter with a name to confirm, Ctrl+C or empty Enter to cancel.
+
+echo -n 'new tab name: '
+name=""
+while IFS= read -r -s -n1 char; do
+    if [[ -z "$char" ]]; then                          # Enter
+        echo
+        break
+    elif [[ "$char" == $'\x1b' ]]; then                # Esc
+        echo
+        exit 0
+    elif [[ "$char" == $'\x7f' ]]; then                # Backspace
+        if [[ -n "$name" ]]; then
+            name="${name%?}"
+            echo -ne '\b \b'
+        fi
+    else
+        name+="$char"
+        echo -n "$char"
+    fi
+done
+
+[ -z "$name" ] && exit 0
+kitty @ launch --type=tab --tab-title "$name" --cwd=current
