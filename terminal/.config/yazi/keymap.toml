@@ -1,0 +1,16 @@
+[mgr]
+prepend_keymap = [
+  # Tab navigation
+  { on = ["]"], run = "tab_switch 1 --relative",  desc = "Switch to next tab" },
+  { on = ["["], run = "tab_switch -1 --relative", desc = "Switch to prev tab" },
+
+  # Bookmarks
+  { on = ["'", "/"], run = "cd /",                      desc = "Bookmark: root" },
+  { on = ["'", "b"], run = "cd /bin",                   desc = "Bookmark: /bin" },
+  { on = ["'", "t"], run = "cd /tmp",                   desc = "Bookmark: /tmp" },
+  { on = ["'", "s"], run = "cd ~/src",                  desc = "Bookmark: ~/src" },
+  { on = ["'", "h"], run = "cd ~",                      desc = "Bookmark: home" },
+  { on = ["'", "d"], run = "cd ~/Downloads",            desc = "Bookmark: Downloads" },
+  { on = ["'", "e"], run = "cd ~/.config/nvim",         desc = "Bookmark: nvim config" },
+  { on = ["'", "p"], run = "cd ~/Pictures/Screenshots", desc = "Bookmark: Screenshots" },
+]

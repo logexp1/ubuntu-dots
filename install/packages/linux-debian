@@ -36,3 +36,9 @@ sshfs
 uv pipx
 podman
 fzf
+iwe cargo
+iwec cargo
+iwes cargo
+yazi-build cargo
+yazi-fm cargo
+yazi-cli cargo

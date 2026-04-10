@@ -28,6 +28,11 @@ install_with() {
                 log_step "packages" "Configuring npm prefix to ~/.local..."
                 npm config set prefix "$HOME/.local"
             fi
+            if [[ "$pkg" == "rustup" ]]; then
+                log_step "packages" "Initializing rustup with stable toolchain..."
+                rustup default stable
+                source "$HOME/.cargo/env"
+            fi
             ;;
         pacman)
             sudo pacman -S --noconfirm "$pkg"
@@ -51,7 +56,11 @@ install_with() {
 			pipx install "$pkg" || pipx upgrade "$pkg"
 			;;
 		cargo)
-            cargo install "$pkg" --locked
+            if [[ "$pkg" == "yazi-build" ]]; then
+                cargo install "$pkg" --locked --force
+            else
+                cargo install "$pkg" --locked
+            fi
             ;;
         *)
             log_error "packages" "Unknown package manager: $pm"

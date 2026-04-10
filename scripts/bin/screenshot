@@ -92,6 +92,7 @@ copy_save_editor_run() {
 
 # take shots
 takescreenshot() {
+    mkdir -p "${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}"
     sleep 0.5 && grimblast --notify "$option_chosen" "$option_type_screenshot"
 }
 

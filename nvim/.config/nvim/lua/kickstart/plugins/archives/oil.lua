@@ -50,6 +50,7 @@ return {
         h = vim.fn.expand '~/',
         d = vim.fn.expand '~/Downloads',
         e = vim.fn.expand '~/.config/nvim/',
+        p = vim.fn.expand '~/Pictures/Screenshots/',
       }
 
       local bookmark_maps = {}

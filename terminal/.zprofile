@@ -7,6 +7,7 @@ pathdirs="
 /usr/local/cuda/bin
 $HOME/.config/emacs/bin
 $HOME/.local/bin
+$HOME/.cargo/bin
 "
 
 while read -r dir; do
