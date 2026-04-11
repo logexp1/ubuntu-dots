@@ -21,22 +21,35 @@ discover_packages() {
     echo "${packages[@]}"
 }
 
+needs_backup() {
+    local target="$1"
+    # Nothing to back up if target doesn't exist (including broken symlinks)
+    [[ -e "$target" || -L "$target" ]] || return 1
+    # Skip if already a symlink pointing into our dots dir (stow owns it)
+    if [[ -L "$target" ]]; then
+        local resolved
+        resolved="$(realpath "$target" 2>/dev/null || true)"
+        [[ "$resolved" == "$BASEDIR"/* ]] && return 1
+    fi
+    return 0
+}
+
 backup_conflicts() {
     local packages=("$@")
     for pkg in "${packages[@]}"; do
         local pkg_dir="$BASEDIR/$pkg"
         [[ -d "$pkg_dir" ]] || continue
 
-        find "$pkg_dir" -mindepth 1 -maxdepth 1 -name '.*' -type d | while read -r dotdir; do
-            local dotname
-            dotname="$(basename "$dotdir")"
+        find "$pkg_dir" -mindepth 1 -maxdepth 1 | while read -r entry; do
+            local name
+            name="$(basename "$entry")"
 
-            if [[ "$dotname" == ".config" ]]; then
-                find "$dotdir" -mindepth 1 -maxdepth 1 -type d | while read -r subdir; do
+            if [[ "$name" == ".config" && -d "$entry" ]]; then
+                find "$entry" -mindepth 1 -maxdepth 1 | while read -r subentry; do
                     local subname target_path backup
-                    subname="$(basename "$subdir")"
+                    subname="$(basename "$subentry")"
                     target_path="$TARGET/.config/$subname"
-                    if [[ -d "$target_path" && ! -L "$target_path" ]]; then
+                    if needs_backup "$target_path"; then
                         backup="$target_path.backup.$TIMESTAMP"
                         log_step "stow" "Backing up $target_path -> $backup"
                         mv "$target_path" "$backup"
@@ -44,8 +57,8 @@ backup_conflicts() {
                 done
             else
                 local target_path backup
-                target_path="$TARGET/$dotname"
-                if [[ -d "$target_path" && ! -L "$target_path" ]]; then
+                target_path="$TARGET/$name"
+                if needs_backup "$target_path"; then
                     backup="$target_path.backup.$TIMESTAMP"
                     log_step "stow" "Backing up $target_path -> $backup"
                     mv "$target_path" "$backup"
