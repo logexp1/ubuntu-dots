@@ -153,11 +153,11 @@
       (winner-undo)
     (delete-other-windows)))
 
-(defhydra hydra-zoom ()
+(after! hydra
+  (defhydra hydra-zoom ()
     "zoom"
     ("i" text-scale-increase "in")
-    ("o" text-scale-decrease "out")
-)
+    ("o" text-scale-decrease "out")))
 
 (general-t
   "s" #'evil-save
@@ -1030,8 +1030,9 @@ I can't use org mode headline search if I enable this package.
   (interactive)
   (org-refile-directly org-default-tickler-file))
 
-(defhydra hydra-org-refiler (:color amaranth :hint nil)
-  "
+(after! hydra
+  (defhydra hydra-org-refiler (:color amaranth :hint nil)
+    "
   ^Navigate^       ^Refile^
   ^^^^^^^^^^---------------------------------------------------------------------------------------
   _k_: ↑ previous _p_: projects
@@ -1039,16 +1040,16 @@ I can't use org mode headline search if I enable this package.
   _a_: archive     _t_: tickler
   _d_: delete      _r_: refile
   "
-  ("k" org-previous-visible-heading)
-  ("j" org-next-visible-heading)
-  ("a" org-archive-subtree-default-with-confirmation)
-  ("d" org-cut-subtree)
-  ("p" org-refile-to-projects)
-  ("i" org-refile-to-incubate)
-  ("t" org-refile-to-tickler)
-  ("r" org-refile)
-  ("<escape>" nil)
-  ("q" nil "quit"))
+    ("k" org-previous-visible-heading)
+    ("j" org-next-visible-heading)
+    ("a" org-archive-subtree-default-with-confirmation)
+    ("d" org-cut-subtree)
+    ("p" org-refile-to-projects)
+    ("i" org-refile-to-incubate)
+    ("t" org-refile-to-tickler)
+    ("r" org-refile)
+    ("<escape>" nil)
+    ("q" nil "quit")))
 #+end_src
 
 ** org agenda
@@ -1749,18 +1750,19 @@ some useful evil-org-mode keybinding (https://github.com/Somelauw/evil-org-mode)
                      "#+TITLE: ${title}\n* Notes :noter:\n:PROPERTIES:\n:NOTER_DOCUMENT: %(orb-process-file-field \"${title}\")\n:NOTER_PAGE:\n:END:")
             :unnarrowed t)))
 
-  (defhydra hydra-roam-dailies (:idle 0.3 :hint nil)
-    "
+  (after! hydra
+    (defhydra hydra-roam-dailies (:idle 0.3 :hint nil)
+      "
 Roam dailies:
 _t_ : today
 _d_ : date
 _j_ : next
 _k_ : previous
 "
-    ("t" #'org-roam-dailies-goto-today)
-    ("d" #'org-roam-dailies-goto-date)
-    ("j" #'org-roam-dailies-goto-next-note)
-    ("k" #'org-roam-dailies-goto-previous-note))
+      ("t" #'org-roam-dailies-goto-today)
+      ("d" #'org-roam-dailies-goto-date)
+      ("j" #'org-roam-dailies-goto-next-note)
+      ("k" #'org-roam-dailies-goto-previous-note)))
 
   (general-def
     :prefix-command 'js/roam

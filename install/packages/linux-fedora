@@ -25,6 +25,12 @@ ncurses-devel
 sqlite-devel
 gtk3-devel
 glib2-devel
+poppler-glib-devel
+poppler-devel
+libpng-devel
+zlib-devel
+pkgconf
+automake
 
 # Languages / runtimes
 rustup

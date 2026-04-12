@@ -6,6 +6,7 @@ tmp/
 .#*
 common/.gnupg/*/
 common/.gnupg/*db*
+common/.gnupg/reader_*.status
 common/.gnupg/*.kbx*
 emacs/.config/doom/config.el
 common/.config/onedrive/*
