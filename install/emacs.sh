@@ -3,6 +3,16 @@ set -e
 source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/common.sh"
 
 run() {
+    local force=0
+    for arg in "$@"; do
+        [[ "$arg" == "--force" ]] && force=1
+    done
+
+    if command -v emacs &>/dev/null && [[ "$force" -eq 0 ]]; then
+        log_step "emacs" "Emacs already installed ($(emacs --version | head -1)). Skipping build. Use --force to rebuild."
+        return 0
+    fi
+
     log_step "emacs" "Building Emacs from source..."
     require_cmd git
     require_cmd make
@@ -67,5 +77,5 @@ run() {
 }
 
 if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    run
+    run "$@"
 fi

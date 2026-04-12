@@ -47,6 +47,9 @@ install_with() {
             yay -S --noconfirm "$pkg"
             ;;
         npm)
+            if ! npm config get prefix 2>/dev/null | grep -q "$HOME"; then
+                npm config set prefix "$HOME/.local"
+            fi
             npm install -g "$pkg"
             ;;
         pip)
@@ -73,11 +76,7 @@ install_with() {
 				esac
 				source "$HOME/.cargo/env"
 			fi
-            if [[ "$pkg" == "yazi-build" ]]; then
-                cargo install "$pkg" --locked --force
-            else
-                cargo install "$pkg" --locked
-            fi
+            cargo install "$pkg" --locked
             ;;
         *)
             log_error "packages" "Unknown package manager: $pm"
