@@ -39,13 +39,27 @@ run() {
         find "$HOME/.gnupg" -type f -exec chmod 600 {} \;
     fi
 
+    # Ensure OneDrive is synced so privkey.asc is available
+    if [[ ! -f "$PRIVKEY_PATH" ]]; then
+        require_cmd onedrive
+        if [[ ! -f "$HOME/.config/onedrive/refresh_token" ]]; then
+            log_step "gpg" "OneDrive not authenticated. Starting interactive authentication..."
+            onedrive
+        fi
+        log_step "gpg" "Syncing OneDrive..."
+        onedrive --synchronize
+        if [[ ! -f "$PRIVKEY_PATH" ]]; then
+            log_error "gpg" "privkey.asc still not found at $PRIVKEY_PATH after sync."
+            return 1
+        fi
+    fi
+
     # Import private key if real secret material is not yet present
     if has_real_secret_key; then
         log_step "gpg" "Secret key already in keyring, skipping import."
     else
         if [[ ! -f "$PRIVKEY_PATH" ]]; then
             log_error "gpg" "Private key not found at $PRIVKEY_PATH"
-            log_error "gpg" "Please sync OneDrive first, then re-run this module."
             return 1
         fi
         log_step "gpg" "Importing private key from $PRIVKEY_PATH..."
