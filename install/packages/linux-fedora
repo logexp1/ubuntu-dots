@@ -1,0 +1,61 @@
+# System tools
+git
+vim
+ripgrep
+fd-find
+fzf
+tmux
+stow
+zsh
+udiskie
+sshfs
+podman
+cpio
+cmake
+
+# Build dependencies for Emacs (built from source)
+autoconf
+texinfo
+make
+libgccjit-devel
+gnutls-devel
+libtree-sitter-devel
+ncurses-devel
+sqlite-devel
+
+# Languages / runtimes
+rustup
+nodejs
+
+# Korean IME
+fcitx5-hangul
+
+# Password management
+pass
+git+https://github.com/languitar/pass-git-helper.git pipx
+
+# Browser + WM / Desktop
+firefox
+foot
+hyprpolkitagent
+cascadia-code-fonts
+
+# OneDrive (requires COPR: sudo dnf copr enable abraunegg/onedrive)
+onedrive
+
+# Python tools
+pywal pipx
+pyprland pipx
+uv pipx
+jupyter pip
+
+# Cargo packages
+hyprland-autoname-workspaces cargo
+eza cargo
+yazi-build cargo
+iwe cargo
+iwec cargo
+iwes cargo
+
+# npm packages
+yaml-language-server npm

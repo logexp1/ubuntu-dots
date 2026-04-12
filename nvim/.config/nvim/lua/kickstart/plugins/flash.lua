@@ -1,7 +1,7 @@
 return {
   {
-    "folke/flash.nvim",
-    event = "VeryLazy",
+    'folke/flash.nvim',
+    event = 'VeryLazy',
     opts = {
       modes = {
         char = {
@@ -11,23 +11,23 @@ return {
     },
     keys = {
       {
-        "ra",
-        mode = { "n", "x", "o" },
+        'ra',
+        mode = { 'n', 'x', 'o' },
         function()
-          require("flash").jump()
+          require('flash').jump()
         end,
-        desc = "Flash",
+        desc = 'Flash',
       },
       {
-        "rs",
-        mode = { "n", "x", "o" },
+        'rs',
+        mode = { 'n', 'x', 'o' },
         function()
-          require("flash").remote()
+          require('flash').remote()
         end,
-        desc = "Remote flash",
+        desc = 'Remote flash',
       },
-      { "s", mode = { "n", "x", "o" }, false },
-      { "S", mode = { "n", "x", "o" }, false },
+      { 's', mode = { 'n', 'x', 'o' }, false },
+      { 'S', mode = { 'n', 'x', 'o' }, false },
     },
   },
 }

@@ -5,8 +5,9 @@ source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/common.sh"
 
 run() {
     if [[ "$OS" != "linux-debian" ]]; then
-        log_error "firefox-deb" "This script is only for Debian/Ubuntu systems."
-        return 1
+        log_step "firefox-deb" "Skipping Mozilla APT setup (not needed on $OS — Firefox installed via system package manager)."
+        # deploy_user_js
+        return 0
     fi
 
     require_cmd wget
