@@ -40,7 +40,7 @@ run() {
         onedrive --sync &
         local onedrive_pid=$!
 
-        local timeout=300
+        local timeout=1800
         local elapsed=0
         log_step "gpg" "Waiting for $PRIVKEY_PATH..."
         while [[ ! -f "$PRIVKEY_PATH" ]]; do
