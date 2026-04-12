@@ -59,6 +59,14 @@ run() {
         log_step "gpg" "Found privkey.asc after ${elapsed}s."
     fi
 
+    # Remove use-keyboxd if present — restart agents so they pick up the change
+    if grep -q 'use-keyboxd' "$HOME/.gnupg/common.conf" 2>/dev/null; then
+        sed -i '/use-keyboxd/d' "$HOME/.gnupg/common.conf"
+        [[ ! -s "$HOME/.gnupg/common.conf" ]] && rm -f "$HOME/.gnupg/common.conf"
+        gpgconf --kill keyboxd 2>/dev/null || true
+        gpgconf --kill gpg-agent 2>/dev/null || true
+    fi
+
     # Ensure gpg-agent is running before any key operations
     gpgconf --launch gpg-agent
 
