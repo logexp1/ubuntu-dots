@@ -12,16 +12,6 @@ has_real_secret_key() {
     gpg --list-secret-keys --with-colons "$KEY_ID" 2>/dev/null | grep -q '^sec:'
 }
 
-# Returns true if a valid (non-expired) encryption subkey exists
-has_valid_encrypt_subkey() {
-    gpg --list-keys --with-colons "$KEY_ID" 2>/dev/null | awk -F: '
-        $1 == "sub" && $12 ~ /e/ {
-            expiry = $7; now = systime()
-            if (expiry == "" || expiry == "0" || expiry+0 > now) found=1
-        }
-        END { exit !found }
-    '
-}
 
 run() {
     if [[ $EUID -eq 0 ]]; then
@@ -101,16 +91,6 @@ run() {
     # Remove expiration on primary key and all subkeys (idempotent)
     log_step "gpg" "Removing key expiration..."
     gpg --quick-set-expire "$fingerprint" 0 '*'
-
-    # Ensure a valid (non-expired) encryption subkey exists
-    if ! has_valid_encrypt_subkey; then
-        log_step "gpg" "No valid encryption subkey found, adding one..."
-        gpg --quick-add-key "$fingerprint" rsa4096 encr 0
-        log_warn "gpg" "New subkey added. Update your backup:"
-        log_warn "gpg" "  gpg --export-secret-keys --armor $KEY_ID > $PRIVKEY_PATH"
-    else
-        log_step "gpg" "Encryption subkey valid, skipping."
-    fi
 
     # Clone password store and initialise (only on first setup)
     if [[ -d "$PASS_DIR" ]]; then
