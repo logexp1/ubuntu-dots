@@ -64,6 +64,15 @@ install_with() {
 			pipx install "$pkg" || pipx upgrade "$pkg"
 			;;
 		cargo)
+			if ! command -v cargo &>/dev/null; then
+				log_step "packages" "cargo not found, installing rustup..."
+				case "$OS" in
+					linux-fedora) sudo dnf install -y rustup && rustup-init -y ;;
+					linux-debian) sudo apt install -y rustup && rustup default stable ;;
+					linux-arch)   sudo pacman -S --noconfirm rust ;;
+				esac
+				source "$HOME/.cargo/env"
+			fi
             if [[ "$pkg" == "yazi-build" ]]; then
                 cargo install "$pkg" --locked --force
             else
