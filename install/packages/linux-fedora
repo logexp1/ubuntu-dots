@@ -22,6 +22,8 @@ gnutls-devel
 libtree-sitter-devel
 ncurses-devel
 sqlite-devel
+gtk3-devel
+glib2-devel
 
 # Languages / runtimes
 rustup
