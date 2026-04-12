@@ -53,6 +53,14 @@ install_with() {
             pip install --user "$pkg"
             ;;
 		pipx)
+			if ! command -v pipx &>/dev/null; then
+				log_step "packages" "pipx not found, installing..."
+				case "$OS" in
+					linux-fedora) sudo dnf install -y pipx ;;
+					linux-debian) sudo apt install -y pipx ;;
+					linux-arch)   sudo pacman -S --noconfirm python-pipx ;;
+				esac
+			fi
 			pipx install "$pkg" || pipx upgrade "$pkg"
 			;;
 		cargo)

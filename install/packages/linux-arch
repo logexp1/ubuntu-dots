@@ -8,6 +8,8 @@ cpio
 cmake
 stow
 tmux
+neovim
+kitty
 foot
 rofi
 hyprpolkitagent

@@ -39,6 +39,8 @@ firefox
 foot
 hyprpolkitagent
 cascadia-code-fonts
+neovim
+kitty
 
 # OneDrive (requires COPR: sudo dnf copr enable abraunegg/onedrive)
 onedrive

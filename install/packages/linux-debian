@@ -21,6 +21,8 @@ libtree-sitter-dev
 libncurses-dev
 stow
 zsh
+neovim
+kitty
 hyprpolkitagent
 fonts-cascadia-code
 pywal pipx
