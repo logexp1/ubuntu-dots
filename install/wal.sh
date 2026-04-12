@@ -12,11 +12,11 @@ run() {
 
     # Symlink the whole wallpapers directory
     [[ -d "$HOME/.wallpapers" && ! -L "$HOME/.wallpapers" ]] && rm -rf "$HOME/.wallpapers"
-    ln -sf "$wallpapers_src" "$HOME/.wallpapers"
+    ln -sfn "$wallpapers_src" "$HOME/.wallpapers"
 
     # Pick a random wallpaper excluding lock-wallpaper.png
     local wallpaper
-    wallpaper=$(find "$HOME/.wallpapers" -type f ! -name 'lock-wallpaper.png' | shuf -n 1)
+    wallpaper=$(find -L "$HOME/.wallpapers" -type f ! -name 'lock-wallpaper.png' | shuf -n 1)
 
     log_step "wal" "Generating color scheme from $wallpaper..."
     wal -i "$wallpaper" -s -t

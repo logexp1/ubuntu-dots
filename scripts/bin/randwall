@@ -1,5 +1,5 @@
 #!/bin/bash
 
-randwall=$(find ~/.wallpapers/ -type f ! -name 'lock-wallpaper.png' | shuf -n 1)
-swww img "$randwall" --transition-type any --transition-fps 60
+randwall=$(find -L ~/.wallpapers/ -type f ! -name 'lock-wallpaper.png' | shuf -n 1)
+swaybg -i "$randwall" -m fill &
 wal -i "$randwall" -s -t &

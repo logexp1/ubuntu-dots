@@ -76,7 +76,17 @@ install_with() {
 				esac
 				source "$HOME/.cargo/env"
 			fi
-            cargo install "$pkg" --locked
+			if [[ "$pkg" == git+* ]]; then
+				local git_url="${pkg#git+}"
+				local git_bin=""
+				if [[ "$git_url" == *#* ]]; then
+					git_bin="${git_url#*#}"
+					git_url="${git_url%#*}"
+				fi
+				cargo install --git "$git_url" ${git_bin:+"$git_bin"}
+			else
+				cargo install "$pkg" --locked
+			fi
             ;;
         *)
             log_error "packages" "Unknown package manager: $pm"

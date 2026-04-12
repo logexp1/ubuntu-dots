@@ -51,6 +51,8 @@ pyprland pipx
 uv pipx
 jupyter pip
 
+swaybg
+
 # Cargo packages
 hyprland-autoname-workspaces cargo
 eza cargo
