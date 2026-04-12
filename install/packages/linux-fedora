@@ -12,6 +12,7 @@ sshfs
 podman
 cpio
 cmake
+gcc-c++
 
 # Build dependencies for Emacs (built from source)
 autoconf
@@ -43,8 +44,22 @@ hyprpolkitagent
 cascadia-code-fonts
 neovim
 kitty
+aquamarine-devel
+hyprlang-devel
+hyprgraphics-devel
+hyprcursor-devel
+hyprutils-devel
+libuuid-devel
+libinput-devel
+mesa-libgbm-devel
+re2-devel
+muParser-devel
+xcb-util-wm-devel
+xcb-util-errors-devel
+hyprwire-devel
+tomlplusplus-devel
 
-# OneDrive (requires COPR: sudo dnf copr enable abraunegg/onedrive)
+# OneDrive
 onedrive
 
 # Python tools
