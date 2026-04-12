@@ -46,13 +46,31 @@ run() {
             log_step "gpg" "OneDrive not authenticated. Starting interactive authentication..."
             onedrive
         fi
-        log_step "gpg" "Syncing OneDrive..."
-        onedrive --sync
-        if [[ ! -f "$PRIVKEY_PATH" ]]; then
-            log_error "gpg" "privkey.asc still not found at $PRIVKEY_PATH after sync."
-            return 1
-        fi
+        log_step "gpg" "Syncing OneDrive in background..."
+        onedrive --sync &
+        local onedrive_pid=$!
+
+        local timeout=300
+        local elapsed=0
+        log_step "gpg" "Waiting for $PRIVKEY_PATH..."
+        while [[ ! -f "$PRIVKEY_PATH" ]]; do
+            if [[ $elapsed -ge $timeout ]]; then
+                kill "$onedrive_pid" 2>/dev/null || true
+                log_error "gpg" "Timed out waiting for privkey.asc after ${timeout}s."
+                return 1
+            fi
+            if ! kill -0 "$onedrive_pid" 2>/dev/null; then
+                log_error "gpg" "onedrive exited before privkey.asc was found."
+                return 1
+            fi
+            sleep 2
+            elapsed=$((elapsed + 2))
+        done
+        log_step "gpg" "Found privkey.asc after ${elapsed}s."
     fi
+
+    # Ensure gpg-agent is running before any key operations
+    gpgconf --launch gpg-agent
 
     # Import private key if real secret material is not yet present
     if has_real_secret_key; then
@@ -77,7 +95,7 @@ run() {
 
     # Set trust to ultimate (idempotent)
     log_step "gpg" "Setting key trust to ultimate..."
-    echo "${fingerprint}:6:" | gpg --import-ownertrust
+    echo "${fingerprint}:5:" | gpg --import-ownertrust
     gpg --check-trustdb
 
     # Remove expiration on primary key and all subkeys (idempotent)
