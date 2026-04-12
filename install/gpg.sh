@@ -47,6 +47,7 @@ run() {
             if [[ $elapsed -ge $timeout ]]; then
                 kill "$onedrive_pid" 2>/dev/null || true
                 log_error "gpg" "Timed out waiting for privkey.asc after ${timeout}s."
+                log_error "gpg" "Run 'onedrive --sync' manually, wait for it to finish, then re-run this script."
                 return 1
             fi
             if ! kill -0 "$onedrive_pid" 2>/dev/null; then
