@@ -11,8 +11,8 @@ run() {
     fi
 
     hyprpm update
-    hyprpm add https://github.com/hyprwm/hyprland-plugins
-	hyprpm reload
+    hyprpm add https://github.com/hyprwm/hyprland-plugins || true
+    hyprpm reload
 
 	log_step "hyprpm" "Done."
 }

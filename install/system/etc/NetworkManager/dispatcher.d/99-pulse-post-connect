@@ -1,0 +1,27 @@
+#!/bin/bash
+
+INTERFACE=$1
+STATUS=$2
+CONNECTION_ID=$CONNECTION_ID      # NetworkManager provides this
+CONNECTION_UUID=$CONNECTION_UUID  # Unique identifier for the connection
+
+# Log for debugging
+logger "NM Dispatcher: interface=$INTERFACE status=$STATUS conn_id=$CONNECTION_ID"
+
+# Exit early if not an "up" event
+[[ "$STATUS" != "up" ]] && exit 0
+
+is_pulse_running() {
+    pgrep -x "pulseUI" > /dev/null
+}
+
+if [[ "$INTERFACE" =~ ^tun[0-9]+$ ]]; then
+    if is_pulse_running; then
+        logger "Pulse Secure VPN connected on $INTERFACE - running post-connect"
+
+	resolvectl dns "$INTERFACE" 10.22.64.6 10.22.64.7
+	resolvectl domain "$INTERFACE" '~navercorp.com' '~nhnsystem.com' '~nfra.io' '~linecorp.com' '~lineinfra.com' '~lineinfra-dev.com' '~akadns.net' '~line-apps-beta.com' '~line-beta.me' '~line-rc.me' '~nhnjp.ism' '~naver.com'
+    fi
+fi
+
+exit 0

@@ -47,7 +47,7 @@ run() {
             onedrive
         fi
         log_step "gpg" "Syncing OneDrive..."
-        onedrive --synchronize
+        onedrive --sync
         if [[ ! -f "$PRIVKEY_PATH" ]]; then
             log_error "gpg" "privkey.asc still not found at $PRIVKEY_PATH after sync."
             return 1

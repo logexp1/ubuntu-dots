@@ -9,7 +9,7 @@ fi
 INSTALL_DIR="$(dirname "$(realpath "$0")")/install"
 source "$INSTALL_DIR/common.sh"
 
-MODULES=(packages shell gpg git emacs systemd hyprpm wal stow doom)
+MODULES=(packages root shell gpg git emacs hyprpm wal stow doom)
 
 usage() {
     echo "Usage: $(basename "$0") <module> [module...]"
