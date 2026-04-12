@@ -1,0 +1,55 @@
+#!/bin/bash
+
+source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/../../install/common.sh"
+
+log_step "update" "Starting full system update..."
+
+# System packages
+case "$OS" in
+    linux-fedora)
+        log_step "update" "Updating dnf packages..."
+        sudo dnf upgrade --refresh -y
+        ;;
+    linux-debian)
+        log_step "update" "Updating apt packages..."
+        sudo apt update && sudo apt upgrade -y
+        ;;
+    linux-arch)
+        log_step "update" "Updating pacman packages..."
+        sudo pacman -Syu --noconfirm
+        if command -v yay &>/dev/null; then
+            log_step "update" "Updating AUR packages..."
+            yay -Syu --noconfirm
+        fi
+        ;;
+esac
+
+# pipx
+if command -v pipx &>/dev/null; then
+    log_step "update" "Updating pipx packages..."
+    pipx upgrade-all
+fi
+
+# npm global packages
+if command -v npm &>/dev/null; then
+    log_step "update" "Updating npm global packages..."
+    npm update -g
+fi
+
+# cargo
+if command -v cargo &>/dev/null; then
+    if cargo install-update --version &>/dev/null 2>&1; then
+        log_step "update" "Updating cargo packages..."
+        cargo install-update -a
+    else
+        log_step "update" "cargo-update not installed, skipping cargo packages."
+    fi
+fi
+
+# flatpak
+if command -v flatpak &>/dev/null; then
+    log_step "update" "Updating flatpak packages..."
+    flatpak update -y
+fi
+
+log_step "update" "All done!"
