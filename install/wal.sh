@@ -3,6 +3,9 @@ set -e
 source "$(dirname "$(realpath "${BASH_SOURCE[0]}")")/common.sh"
 
 run() {
+    export PATH="$HOME/.local/bin:$PATH"
+    require_cmd wal
+
     local wallpapers_src="$BASEDIR/assets/wallpapers"
 
     if [[ ! -d "$wallpapers_src" ]]; then
