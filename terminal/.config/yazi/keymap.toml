@@ -1,3 +1,8 @@
+[input]
+prepend_keymap = [
+  { on = ["<Esc>"], run = "close", desc = "Cancel and close input" },
+]
+
 [mgr]
 prepend_keymap = [
   # Tab navigation

@@ -4,9 +4,12 @@ return {
     priority = 1000,
     lazy = false,
     opts = {
+      image = { enabled = false },
       dashboard = { example = 'doom' },
+      -- Picker disabled — using telescope instead.
+      -- To switch back: set enabled = true and uncomment the keys below.
       picker = {
-        enabled = true,
+        enabled = false,
         layout = {
           preset = 'ivy',
         },
@@ -19,6 +22,11 @@ return {
               ['<Esc>'] = { 'close', mode = { 'n', 'i' } },
             },
           },
+          list = {
+            keys = {
+              ['<Esc>'] = { 'close', mode = { 'n' } },
+            },
+          },
         },
       },
       scroll = {
@@ -26,77 +34,16 @@ return {
         enabled = true,
       },
     },
-    keys = {
-      {
-        '<leader><space>',
-        function()
-          Snacks.picker.smart()
-        end,
-        desc = 'Smart Find Files',
-      },
-      {
-        '<leader>s',
-        function()
-          Snacks.picker.buffers()
-        end,
-        desc = 'switch to buffers',
-      },
-      {
-        '<leader>/',
-        function()
-          Snacks.picker.git_grep()
-        end,
-        desc = 'grep in git preojects',
-      },
-      {
-        '<leader>:',
-        function()
-          Snacks.picker.command_history()
-        end,
-        desc = 'Command history',
-      },
-      {
-        '<leader>ff',
-        function()
-          Snacks.picker.files()
-        end,
-        desc = 'Find Files from home directory',
-      },
-      {
-        '<leader>p',
-        function()
-          Snacks.picker.git_files()
-        end,
-        desc = 'find files (in projects)',
-      },
-      {
-        '<leader>fb',
-        function()
-          Snacks.picker.buffers()
-        end,
-        desc = 'Buffers',
-      },
-      {
-        '<leader>fr',
-        function()
-          Snacks.picker.recent()
-        end,
-        desc = 'Recent Files',
-      },
-      {
-        '<leader>c',
-        function()
-          Snacks.picker.projects()
-        end,
-        desc = 'change project',
-      },
-      {
-        '<leader>:',
-        function()
-          Snacks.picker.command_history()
-        end,
-        desc = 'Command History',
-      },
-    },
+    -- keys = {
+    --   { '<leader><space>', function() Snacks.picker.smart() end,           desc = 'Smart Find Files' },
+    --   { '<leader>s',       function() Snacks.picker.buffers() end,         desc = 'Switch Buffers' },
+    --   { '<leader>/',       function() Snacks.picker.git_grep() end,        desc = 'Grep in git projects' },
+    --   { '<leader>:',       function() Snacks.picker.command_history() end, desc = 'Command History' },
+    --   { '<leader>ff',      function() Snacks.picker.files() end,           desc = 'Find Files' },
+    --   { '<leader>p',       function() Snacks.picker.git_files() end,       desc = 'Find Git Files' },
+    --   { '<leader>fb',      function() Snacks.picker.buffers() end,         desc = 'Buffers' },
+    --   { '<leader>fr',      function() Snacks.picker.recent() end,          desc = 'Recent Files' },
+    --   { '<leader>c',       function() Snacks.picker.projects() end,        desc = 'Change Project' },
+    -- },
   },
 }

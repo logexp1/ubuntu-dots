@@ -9,6 +9,7 @@ run() {
     git config --global user.email "jisoo.h.lee@gmail.com"
     git config --global user.name "Jisoo Lee"
     git config --global credential.helper '!pass-git-helper $@'
+    git config --global credential.https://oss.navercorp.com.username jisoo.h.lee
 
     log_step "git" "Done."
 }
