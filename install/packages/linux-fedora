@@ -45,6 +45,7 @@ gh dnf-repo https://cli.github.com/packages/rpm/gh-cli.repo
 
 # Password management
 pass
+browserpass
 git+https://github.com/languitar/pass-git-helper.git pipx
 
 # Browser + WM / Desktop

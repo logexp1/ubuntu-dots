@@ -82,6 +82,9 @@ run() {
 
     log_step "stow" "Packages: ${packages[*]}"
 
+    # Pre-create dirs that must not be folded into symlinks by stow
+    mkdir -p "$TARGET/.mozilla/native-messaging-hosts"
+
     backup_conflicts "${packages[@]}"
     stow -Rvt "$TARGET" -d "$BASEDIR" "${packages[@]}"
     log_step "stow" "Done."

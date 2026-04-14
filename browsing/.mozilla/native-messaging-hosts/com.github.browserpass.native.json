@@ -1,0 +1,8 @@
+{
+    "name": "com.github.browserpass.native",
+    "description": "Browserpass native messaging host",
+    "path": "/usr/bin/browserpass-native",
+    "type": "stdio",
+    "allowed_extensions": ["browserpass@maximbaz.com"]
+}
+
