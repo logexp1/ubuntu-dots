@@ -20,6 +20,7 @@ default_pm() {
 install_with() {
     local pm="$1"
     local pkg="$2"
+    local extra="${3:-}"
 
     case "$pm" in
         apt)
@@ -39,6 +40,14 @@ install_with() {
             ;;
         dnf)
             sudo dnf install -y "$pkg"
+            ;;
+        dnf-repo)
+            local repo_id
+            repo_id=$(basename "$extra" .repo)
+            if ! sudo dnf repolist --enabled | grep -q "^$repo_id"; then
+                sudo dnf config-manager addrepo --from-repofile="$extra"
+            fi
+            sudo dnf install -y --repo "$repo_id" "$pkg"
             ;;
         brew)
             brew install "$pkg"
@@ -117,13 +126,14 @@ run() {
         # skip empty lines and comments
         [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
 
-        local pkg pm
+        local pkg pm extra
         pkg="$(echo "$line" | awk '{print $1}')"
         pm="$(echo "$line" | awk '{print $2}')"
         pm="${pm:-$default}"
+        extra="$(echo "$line" | awk '{print $3}')"
 
         log_step "packages" "Installing $pkg with $pm..."
-        install_with "$pm" "$pkg"
+        install_with "$pm" "$pkg" "$extra"
     done < "$pkg_file"
 
     log_step "packages" "Done."

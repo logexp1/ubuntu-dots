@@ -1,4 +1,5 @@
 # System tools
+dnf5-plugins
 git
 vim
 ripgrep
@@ -38,6 +39,9 @@ nodejs
 
 # Korean IME
 fcitx5-hangul
+
+# GitHub CLI
+gh dnf-repo https://cli.github.com/packages/rpm/gh-cli.repo
 
 # Password management
 pass
