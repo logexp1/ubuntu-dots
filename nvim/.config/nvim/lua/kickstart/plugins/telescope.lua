@@ -25,6 +25,21 @@ return {
       local builtin = require 'telescope.builtin'
       local actions = require 'telescope.actions'
 
+      -- Create a new file from the current prompt text
+      local function create_file(prompt_bufnr)
+        local state = require 'telescope.actions.state'
+        local prompt = state.get_current_picker(prompt_bufnr):_get_prompt()
+        actions.close(prompt_bufnr)
+        if prompt == '' then
+          return
+        end
+        local dir = vim.fn.fnamemodify(prompt, ':h')
+        if dir ~= '.' then
+          vim.fn.mkdir(dir, 'p')
+        end
+        vim.cmd('edit ' .. vim.fn.fnameescape(prompt))
+      end
+
       telescope.setup {
         defaults = {
           preview = {
@@ -44,13 +59,32 @@ return {
             },
           },
         },
+        pickers = {
+          find_files = {
+            mappings = {
+              i = { ['<C-e>'] = create_file },
+              n = { ['<C-e>'] = create_file },
+            },
+          },
+        },
       }
 
       pcall(telescope.load_extension, 'fzf')
       pcall(telescope.load_extension, 'projects')
 
-      vim.keymap.set('n', '<leader><space>', builtin.find_files, { desc = 'Find Files' })
+      vim.keymap.set('n', '<leader><space>', builtin.keymaps, { desc = 'Keymaps' })
       vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Find Files' })
+      vim.keymap.set('n', '<leader>fn', function()
+        vim.ui.input({ prompt = 'Open/create file: ', default = vim.fn.getcwd() .. '/', completion = 'file' }, function(path)
+          if not path or path == '' then
+            return
+          end
+          local abs = vim.fn.fnamemodify(path, ':p')
+          local dir = vim.fn.fnamemodify(abs, ':h')
+          vim.fn.mkdir(dir, 'p')
+          vim.cmd('edit ' .. vim.fn.fnameescape(abs))
+        end)
+      end, { desc = 'New/open file by path' })
       vim.keymap.set('n', '<leader>p', builtin.git_files, { desc = 'Find Git Files' })
       vim.keymap.set('n', '<leader>fr', builtin.oldfiles, { desc = 'Recent Files' })
       vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = 'Buffers' })
@@ -58,6 +92,7 @@ return {
       vim.keymap.set('n', '<leader>/', builtin.live_grep, { desc = 'Live Grep' })
       vim.keymap.set('n', '<leader>:', builtin.command_history, { desc = 'Command History' })
       vim.keymap.set('n', '<leader>c', telescope.extensions.projects.projects, { desc = 'Projects' })
+      vim.keymap.set('n', '<leader>h', builtin.help_tags, { desc = 'Help' })
     end,
   },
 }
