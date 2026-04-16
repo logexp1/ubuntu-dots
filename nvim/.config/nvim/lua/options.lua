@@ -10,7 +10,7 @@ vim.o.number = true
 -- vim.o.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
-vim.o.mouse = "a"
+vim.o.mouse = 'a'
 
 -- Don't show the mode, since it's already in the status line
 vim.o.showmode = false
@@ -20,7 +20,7 @@ vim.o.showmode = false
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
 vim.schedule(function()
-	vim.o.clipboard = "unnamedplus"
+  vim.o.clipboard = 'unnamedplus'
 end)
 
 -- Enable break indent
@@ -34,7 +34,7 @@ vim.o.ignorecase = true
 vim.o.smartcase = true
 
 -- Keep signcolumn on by default
-vim.o.signcolumn = "yes"
+vim.o.signcolumn = 'yes'
 
 -- Decrease update time
 vim.o.updatetime = 250
@@ -55,10 +55,10 @@ vim.o.splitbelow = true
 --   See `:help lua-options`
 --   and `:help lua-options-guide`
 vim.o.list = true
-vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
+vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
 -- Preview substitutions live, as you type!
-vim.o.inccommand = "split"
+vim.o.inccommand = 'split'
 
 -- Show which line your cursor is on
 vim.o.cursorline = true
@@ -74,7 +74,7 @@ vim.o.scrolloff = 10
 -- Enable visual line wrapping (like Emacs visual-line-mode)
 vim.o.wrap = true
 vim.o.linebreak = true
-vim.o.showbreak = "↪ "
+vim.o.showbreak = '↪ '
 
 -- Disable swap files (like Emacs behavior)
 vim.o.swapfile = false -- No swap files
@@ -82,6 +82,40 @@ vim.o.backup = false -- No backup files
 vim.o.writebackup = false -- No backup before overwriting file
 
 -- Fine-tune wrapped line display
-vim.opt.breakindentopt = "shift:2,min:40,sbr"
+vim.opt.breakindentopt = 'shift:2,min:40,sbr'
+
+-- Equalize splits when terminal is resized (e.g. toggling fullscreen in Hyprland)
+vim.api.nvim_create_autocmd('VimResized', {
+  callback = function()
+    vim.cmd 'wincmd ='
+  end,
+})
+
+-- Highlight when yanking (copying) text
+--  Try it with `yap` in normal mode
+--  See `:help vim.hl.on_yank()`
+vim.api.nvim_create_autocmd('TextYankPost', {
+  desc = 'Highlight when yanking (copying) text',
+  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+  callback = function()
+    vim.hl.on_yank()
+  end,
+})
+
+-- Auto change directory to current buffer's directory
+vim.api.nvim_create_autocmd('BufEnter', {
+  callback = function()
+    -- Skip for oil buffers
+    if vim.bo.filetype == 'oil' then
+      return
+    end
+
+    -- Check if the buffer has a valid file path
+    local filepath = vim.fn.expand '%:p:h'
+    if filepath ~= '' and vim.fn.isdirectory(filepath) == 1 then
+      vim.cmd('lcd ' .. filepath)
+    end
+  end,
+})
 
 -- vim: ts=2 sts=2 sw=2 et

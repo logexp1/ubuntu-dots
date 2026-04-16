@@ -1,6 +1,7 @@
 [input]
 prepend_keymap = [
   { on = ["<Esc>"], run = "close", desc = "Cancel and close input" },
+  { on = ["<C-c>"], run = "close", desc = "Cancel and close input" },
 ]
 
 [mgr]
