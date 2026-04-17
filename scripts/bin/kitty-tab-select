@@ -2,6 +2,20 @@
 # Fuzzy tab switcher for kitty (≈ tmux prefix+s session list)
 # Requires: allow_remote_control yes in kitty.conf
 
+# Save current tab for kitty-last-tab
+info=$(kitty @ ls 2>/dev/null | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+for w in data:
+    for tab in w.get('tabs', []):
+        if tab.get('is_focused'):
+            print(w['id'], tab['id'])
+            raise SystemExit
+")
+os_win_id=$(echo "$info" | cut -d' ' -f1)
+current_id=$(echo "$info" | cut -d' ' -f2)
+[ -n "$current_id" ] && echo "$current_id" > "/tmp/kitty_last_tab_${os_win_id}"
+
 result=$(kitty @ ls 2>/dev/null | python3 -c "
 import sys, json
 data = json.load(sys.stdin)

@@ -1,0 +1,26 @@
+#!/bin/bash
+# Switch to last active kitty tab (Alt-Tab behavior)
+
+info=$(kitty @ ls 2>/dev/null | python3 -c "
+import sys, json
+data = json.load(sys.stdin)
+for w in data:
+    for tab in w.get('tabs', []):
+        if tab.get('is_focused'):
+            print(w['id'], tab['id'])
+            raise SystemExit
+")
+
+os_win_id=$(echo "$info" | cut -d' ' -f1)
+current_id=$(echo "$info" | cut -d' ' -f2)
+
+[ -z "$current_id" ] && exit 0
+
+state_file="/tmp/kitty_last_tab_${os_win_id}"
+
+prev_id=""
+[ -f "$state_file" ] && prev_id=$(cat "$state_file")
+
+echo "$current_id" > "$state_file"
+
+[ -n "$prev_id" ] && [ "$prev_id" != "$current_id" ] && kitty @ focus-tab --match "id:$prev_id"

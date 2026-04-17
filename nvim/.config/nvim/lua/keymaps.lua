@@ -52,8 +52,8 @@ map('i', '<C-k>', '<C-o><C-u>zz', { desc = 'Scroll up half page' })
 map('v', '<C-j>', '<C-d>zz', { desc = 'Scroll down half page' })
 map('v', '<C-k>', '<C-u>zz', { desc = 'Scroll up half page' })
 
-map('n', 'j', 'jzz', { desc = 'move cursor down' })
-map('n', 'k', 'kzz', { desc = 'move cursor up' })
+map('n', 'j', 'gjzz', { desc = 'move cursor down (visual line)' })
+map('n', 'k', 'gkzz', { desc = 'move cursor up (visual line)' })
 
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`

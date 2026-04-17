@@ -15,3 +15,4 @@ wm/.cache
 .omc
 browsing/.mozilla/firefox/
 browsing/.mozilla/native-messaging-hosts/tridactyl*
+terminal/.config/yazi/plugins

@@ -1,0 +1,10 @@
+[options]
+background = #1e1e2e
+overlay_font = monospace:11
+scaling_mode = full
+loop_input = true
+
+[binds]
+q = quit
+<Escape> = quit
+f = fullscreen
