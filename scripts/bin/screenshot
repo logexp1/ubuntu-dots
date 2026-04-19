@@ -1,105 +1,32 @@
 #!/usr/bin/env bash
 
-## Author  : Aditya Shakya (adi1090x)
-## Github  : @adi1090x
-#
-## Applets : Screenshot (Ported to use Grimblast)
+export GRIMBLAST_EDITOR="satty --filename"
 
-## Modify
-## Author  : Gonçalo Duarte (MrDuartePT)
-## Github  : @MrDuartePT
+screenshot_opts=("󰍺 All Screen" "󰍹 Active Screen" "󱣴 Capture Area")
+action_opts=(" Copy" " Save" " Copy & Save" " Edit")
 
-## Port for Grimblast (https://github.com/hyprwm/contrib/tree/main/grimblast)
-## Aur Package: grimblast-git (https://aur.archlinux.org/packages/grimblast-git)
-
-## Add this to the ~/.config/user-dirs.dirs to save in the Screenshots folder: XDG_SCREENSHOTS_DIR="$HOME/Screenshots"
-export GRIMBLAST_EDITOR="swappy -f"
-
-prompt='Screenshot'
-
-# Options
-option_1="󰍺 Whole Screen"
-option_2="󰍹 Active Screen"
-option_3="󱣴 Capture Area"
-
-copy='󰆐 Copy'
-save=' Save'
-edit='󱛦 Edit'
-
-####
-# Chose Screenshot Type
-# CMD
-type_screenshot_cmd() {
-    rofi -theme '~/.config/rofi/styles/screenshot.rasi' -p $prompt -dmenu -selected-row 1
+rofi_menu() {
+    local prompt="$1"; shift
+    printf '%s\n' "$@" | rofi -dmenu -p "$prompt"
 }
 
-# Ask for confirmation
-type_screenshot_exit() {
-    echo -e "$option_1\n$option_2\n$option_3" | type_screenshot_cmd
-}
+type_choice=$(rofi_menu "Screenshot" "${screenshot_opts[@]}") || exit 1
+case "$type_choice" in
+    "󰍺 All Screen")    option_type="screen" ;;
+    "󰍹 Active Screen") option_type="active" ;;
+    "󱣴 Capture Area")  option_type="area" ;;
+    *) exit 1 ;;
+esac
 
-# Confirm and execute
-type_screenshot_run() {
-    selected_type_screenshot="$(type_screenshot_exit)"
-    case $selected_type_screenshot in
-        $option_1)
-            option_type_screenshot=screen
-            ;;
-        $option_2)
-            option_type_screenshot=output
-            ;;
-        $option_3)
-            option_type_screenshot=area
-            ;;
-    esac
-}
+action_choice=$(rofi_menu "Action" "${action_opts[@]}") || exit 1
+case "$action_choice" in
+    " Copy")        option_action="copy" ;;
+    " Save")        option_action="save" ;;
+    " Copy & Save") option_action="copysave" ;;
+    " Edit")        option_action="edit" ;;
+    *) exit 1 ;;
+esac
 
-####
-# Choose to save or copy photo
-# CMD
-copy_save_editor_cmd() {
-    rofi -theme-str 'window {location: center; anchor: center; fullscreen: false; width: 400px; height:150px;}' \
-        -theme-str 'mainbox {orientation: vertical; children: [ "message", "listview" ];}' \
-        -theme-str 'element-text {horizontal-align: 0.5;}' \
-        -dmenu \
-        -p 'Choose Option' \
-        -mesg 'save or open in image editor'
-}
-
-# Ask for confirmation
-copy_save_editor_exit() {
-    echo -e "$copy\n$save\n$edit" | copy_save_editor_cmd
-}
-
-# Confirm and execute
-copy_save_editor_run() {
-    selected_chosen="$(copy_save_editor_exit)"
-    if [[ "$selected_chosen" == "$copy" ]]; then
-        option_chosen=copy
-        ${1}
-    elif [[ "$selected_chosen" == "$save" ]]; then
-        option_chosen=save
-        ${1}
-    elif [[ "$selected_chosen" == "$copy_save" ]]; then
-        option_chosen=copysave
-        ${1}
-    elif [[ "$selected_chosen" == "$edit" ]]; then
-        option_chosen=edit
-        ${1}
-    fi
-}
-###
-
-# take shots
-takescreenshot() {
-    mkdir -p "${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}"
-    sleep 0.5 && grimblast --notify "$option_chosen" "$option_type_screenshot"
-}
-
-type_screenshot_run
-
-# proceed only if some option is selected
-options=("screen" "output" "area")
-if [[ " ${options[@]} " =~ " $option_type_screenshot " ]]; then
-    copy_save_editor_run "takescreenshot"
-fi
+mkdir -p "${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}"
+DEFAULT_TARGET_DIR="${XDG_SCREENSHOTS_DIR:-$HOME/Pictures/Screenshots}" \
+    grimblast -n "$option_action" "$option_type"
