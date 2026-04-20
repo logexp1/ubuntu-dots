@@ -69,9 +69,11 @@ xcb-util-wm-devel
 xcb-util-errors-devel
 hyprwire-devel
 tomlplusplus-devel
+google-chrome-stable
 
 # OneDrive
 onedrive
+dropbox
 
 # Python tools
 pywal pipx

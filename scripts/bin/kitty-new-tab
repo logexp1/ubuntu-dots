@@ -2,6 +2,7 @@
 # Create a new kitty tab, prompting for name first.
 # Press Enter with a name to confirm, Ctrl+C or empty Enter to cancel.
 
+fcitx5-remote -c
 echo -n 'new tab name: '
 name=""
 while IFS= read -r -s -n1 char; do

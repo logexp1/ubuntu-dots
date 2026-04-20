@@ -2,6 +2,8 @@
 # Fuzzy tab switcher for kitty (≈ tmux prefix+s session list)
 # Requires: allow_remote_control yes in kitty.conf
 
+fcitx5-remote -c
+
 # Save current tab for kitty-last-tab
 info=$(kitty @ ls 2>/dev/null | python3 -c "
 import sys, json
@@ -21,13 +23,20 @@ import sys, json
 data = json.load(sys.stdin)
 for os_win in data:
     for tab in os_win.get('tabs', []):
+        windows = tab.get('windows', [])
+        if not windows:
+            continue
+        win_id = next((w['id'] for w in windows if w.get('is_focused')), windows[0]['id'])
         marker = '>' if tab.get('is_focused') else ' '
-        print(f\"{tab['id']}\t{marker} {tab['title']}\")
-" | fzf --with-nth=2.. \
+        print(f\"{tab['id']}\t{win_id}\t{marker} {tab['title']}\")
+" | fzf --with-nth=3.. \
        --delimiter='\t' \
        --bind='j:down,k:up' \
        --prompt='tab> ' \
-       --height=40%)
+       --ansi \
+       --preview='kitty @ get-text --ansi --extent=screen --match id:{2} 2>/dev/null' \
+       --preview-window='right:60%' \
+       --height=80%)
 
 [ -z "$result" ] && exit 0
 
