@@ -1,6 +1,7 @@
 return {
   {
     'nvim-telescope/telescope.nvim',
+    enabled = false,
     event = 'VimEnter',
     dependencies = {
       'nvim-lua/plenary.nvim',
@@ -19,6 +20,7 @@ return {
           patterns = { '.git', 'pyproject.toml', 'setup.py', 'Cargo.toml', 'package.json' },
         },
       },
+      { 'nvim-telescope/telescope-frecency.nvim', version = '*' },
     },
     config = function()
       local telescope = require 'telescope'
@@ -59,6 +61,14 @@ return {
             },
           },
         },
+        extensions = {
+          frecency = {
+            db_safe_mode = false,
+            default_workspace = 'CWD',
+            path_display = { 'filename_first' },
+            show_unindexed = true,
+          },
+        },
         pickers = {
           find_files = {
             mappings = {
@@ -71,6 +81,7 @@ return {
 
       pcall(telescope.load_extension, 'fzf')
       pcall(telescope.load_extension, 'projects')
+      pcall(telescope.load_extension, 'frecency')
 
       vim.keymap.set('n', '<leader><space>', builtin.keymaps, { desc = 'Keymaps' })
       vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Find Files' })
@@ -86,7 +97,7 @@ return {
         end)
       end, { desc = 'New/open file by path' })
       vim.keymap.set('n', '<leader>p', builtin.git_files, { desc = 'Find Git Files' })
-      vim.keymap.set('n', '<leader>fr', builtin.oldfiles, { desc = 'Recent Files' })
+      vim.keymap.set('n', '<leader>fr', telescope.extensions.frecency.frecency, { desc = 'Recent Files (frecency)' })
       vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = 'Buffers' })
       vim.keymap.set('n', '<leader>s', builtin.buffers, { desc = 'Switch Buffers' })
       vim.keymap.set('n', '<leader>/', builtin.live_grep, { desc = 'Live Grep' })

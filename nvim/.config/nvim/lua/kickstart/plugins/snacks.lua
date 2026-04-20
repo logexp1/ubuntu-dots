@@ -6,12 +6,10 @@ return {
     opts = {
       image = { enabled = false },
       dashboard = { example = 'doom' },
-      -- Picker disabled — using telescope instead.
-      -- To switch back: set enabled = true and uncomment the keys below.
       picker = {
-        enabled = false,
+        enabled = true,
         layout = {
-          preset = 'ivy',
+          preset = 'telescope',
         },
         matcher = {
           frecency = true,
@@ -34,16 +32,77 @@ return {
         enabled = true,
       },
     },
-    -- keys = {
-    --   { '<leader><space>', function() Snacks.picker.smart() end,           desc = 'Smart Find Files' },
-    --   { '<leader>s',       function() Snacks.picker.buffers() end,         desc = 'Switch Buffers' },
-    --   { '<leader>/',       function() Snacks.picker.git_grep() end,        desc = 'Grep in git projects' },
-    --   { '<leader>:',       function() Snacks.picker.command_history() end, desc = 'Command History' },
-    --   { '<leader>ff',      function() Snacks.picker.files() end,           desc = 'Find Files' },
-    --   { '<leader>p',       function() Snacks.picker.git_files() end,       desc = 'Find Git Files' },
-    --   { '<leader>fb',      function() Snacks.picker.buffers() end,         desc = 'Buffers' },
-    --   { '<leader>fr',      function() Snacks.picker.recent() end,          desc = 'Recent Files' },
-    --   { '<leader>c',       function() Snacks.picker.projects() end,        desc = 'Change Project' },
-    -- },
+    keys = {
+      {
+        '<leader><space>',
+        function()
+          Snacks.picker.smart()
+        end,
+        desc = 'Smart Find Files',
+      },
+      {
+        '<leader>s',
+        function()
+          Snacks.picker.buffers()
+        end,
+        desc = 'Switch Buffers',
+      },
+      {
+        '<leader>/',
+        function()
+          Snacks.picker.grep()
+        end,
+        desc = 'Live Grep',
+      },
+      {
+        '<leader>:',
+        function()
+          Snacks.picker.command_history()
+        end,
+        desc = 'Command History',
+      },
+      {
+        '<leader>ff',
+        function()
+          Snacks.picker.files()
+        end,
+        desc = 'Find Files',
+      },
+      {
+        '<leader>p',
+        function()
+          Snacks.picker.git_files()
+        end,
+        desc = 'Find Git Files',
+      },
+      {
+        '<leader>fb',
+        function()
+          Snacks.picker.buffers()
+        end,
+        desc = 'Buffers',
+      },
+      {
+        '<leader>fr',
+        function()
+          Snacks.picker.recent()
+        end,
+        desc = 'Recent Files',
+      },
+      {
+        '<leader>c',
+        function()
+          Snacks.picker.projects()
+        end,
+        desc = 'Change Project',
+      },
+      {
+        '<leader>h',
+        function()
+          Snacks.picker.help()
+        end,
+        desc = 'Help',
+      },
+    },
   },
 }

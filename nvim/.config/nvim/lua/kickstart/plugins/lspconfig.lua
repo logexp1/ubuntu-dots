@@ -85,29 +85,27 @@ return {
             vim.keymap.set(mode, keys, func, { buffer = event.buf, desc = 'LSP: ' .. desc })
           end
 
-          local tb = require 'telescope.builtin'
-
           -- Find references for the word under your cursor.
-          map('grr', tb.lsp_references, '[G]oto [R]eferences')
+          map('grr', function() Snacks.picker.lsp_references() end, '[G]oto [R]eferences')
 
           -- Jump to the implementation of the word under your cursor.
-          map('gri', tb.lsp_implementations, '[G]oto [I]mplementation')
+          map('gri', function() Snacks.picker.lsp_implementations() end, '[G]oto [I]mplementation')
 
           -- Jump to the definition of the word under your cursor.
           --  To jump back, press <C-t>.
-          map('grd', tb.lsp_definitions, '[G]oto [D]efinition')
+          map('grd', function() Snacks.picker.lsp_definitions() end, '[G]oto [D]efinition')
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           -- Fuzzy find all the symbols in your current document.
-          map('gO', tb.lsp_document_symbols, 'Open Document Symbols')
+          map('gO', function() Snacks.picker.lsp_symbols() end, 'Open Document Symbols')
 
           -- Fuzzy find all the symbols in your current workspace.
-          map('gW', tb.lsp_workspace_symbols, 'Open Workspace Symbols')
+          map('gW', function() Snacks.picker.lsp_workspace_symbols() end, 'Open Workspace Symbols')
 
           -- Jump to the type of the word under your cursor.
-          map('grt', tb.lsp_type_definitions, '[G]oto [T]ype Definition')
+          map('grt', function() Snacks.picker.lsp_type_definitions() end, '[G]oto [T]ype Definition')
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
