@@ -36,9 +36,9 @@ return {
       {
         '<leader><space>',
         function()
-          Snacks.picker.smart()
+          Snacks.picker.keymaps()
         end,
-        desc = 'Smart Find Files',
+        desc = 'Keymaps',
       },
       {
         '<leader>s',
@@ -64,9 +64,9 @@ return {
       {
         '<leader>ff',
         function()
-          Snacks.picker.files()
+          Snacks.picker.smart()
         end,
-        desc = 'Find Files',
+        desc = 'Smart Find Files',
       },
       {
         '<leader>p',

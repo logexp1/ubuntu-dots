@@ -53,7 +53,7 @@ firefox
 foot
 hyprpolkitagent
 cascadia-code-fonts
-neovim
+neovim dnf-copr agriffis/neovim-nightly
 kitty
 aquamarine-devel
 hyprlang-devel

@@ -59,6 +59,10 @@ return {
       --    That is to say, every time a new file is opened that is associated with
       --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
       --    function will be executed to configure the current buffer
+      -- stylua has an lsp/stylua.lua in nvim-lspconfig for Neovim 0.12+ auto-start,
+      -- but the installed stylua binary doesn't support --lsp; disable it explicitly.
+      vim.lsp.enable('stylua', false)
+
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
@@ -86,26 +90,38 @@ return {
           end
 
           -- Find references for the word under your cursor.
-          map('grr', function() Snacks.picker.lsp_references() end, '[G]oto [R]eferences')
+          map('grr', function()
+            Snacks.picker.lsp_references()
+          end, '[G]oto [R]eferences')
 
           -- Jump to the implementation of the word under your cursor.
-          map('gri', function() Snacks.picker.lsp_implementations() end, '[G]oto [I]mplementation')
+          map('gri', function()
+            Snacks.picker.lsp_implementations()
+          end, '[G]oto [I]mplementation')
 
           -- Jump to the definition of the word under your cursor.
           --  To jump back, press <C-t>.
-          map('grd', function() Snacks.picker.lsp_definitions() end, '[G]oto [D]efinition')
+          map('grd', function()
+            Snacks.picker.lsp_definitions()
+          end, '[G]oto [D]efinition')
 
           -- WARN: This is not Goto Definition, this is Goto Declaration.
           map('grD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           -- Fuzzy find all the symbols in your current document.
-          map('gO', function() Snacks.picker.lsp_symbols() end, 'Open Document Symbols')
+          map('gO', function()
+            Snacks.picker.lsp_symbols()
+          end, 'Open Document Symbols')
 
           -- Fuzzy find all the symbols in your current workspace.
-          map('gW', function() Snacks.picker.lsp_workspace_symbols() end, 'Open Workspace Symbols')
+          map('gW', function()
+            Snacks.picker.lsp_workspace_symbols()
+          end, 'Open Workspace Symbols')
 
           -- Jump to the type of the word under your cursor.
-          map('grt', function() Snacks.picker.lsp_type_definitions() end, '[G]oto [T]ype Definition')
+          map('grt', function()
+            Snacks.picker.lsp_type_definitions()
+          end, '[G]oto [T]ype Definition')
 
           -- The following two autocommands are used to highlight references of the
           -- word under your cursor when your cursor rests there for a little while.
@@ -276,11 +292,14 @@ return {
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
+          stylua = function() end, -- formatter only; lspconfig/mason-lspconfig would otherwise start it as LSP
         },
       }
+
+      -- Must run after mason-lspconfig.setup since lspconfig.setup() re-enables it
+      vim.lsp.enable('stylua', false)
     end,
   },
 }
-
 
 -- vim: ts=2 sts=2 sw=2 et

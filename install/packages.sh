@@ -49,6 +49,12 @@ install_with() {
             fi
             sudo dnf install -y --repo "$repo_id" "$pkg"
             ;;
+        dnf-copr)
+            if ! sudo dnf copr list --enabled 2>/dev/null | grep -q "$extra"; then
+                sudo dnf copr enable -y "$extra"
+            fi
+            sudo dnf install -y "$pkg"
+            ;;
         brew)
             brew install "$pkg"
             ;;

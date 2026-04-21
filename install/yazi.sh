@@ -21,6 +21,7 @@ run() {
     ya_pkg_add yazi-rs/plugins:full-border
     ya_pkg_add yazi-rs/plugins:git
     ya_pkg_add yazi-rs/plugins:chmod
+    ya pkg install
 
     log_step "yazi" "Setting xdg mime defaults..."
     xdg-mime default org.pwmt.zathura.desktop application/pdf
