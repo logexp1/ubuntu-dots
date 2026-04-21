@@ -47,6 +47,18 @@ return {
         end
       end
 
+      local function unmark()
+        local path = get_entry_path()
+        if not path then return end
+        marks[path] = nil
+        local buf = vim.api.nvim_get_current_buf()
+        refresh_marks(buf)
+        local row = vim.api.nvim_win_get_cursor(0)[1]
+        if row < vim.api.nvim_buf_line_count(buf) then
+          vim.api.nvim_win_set_cursor(0, { row + 1, 0 })
+        end
+      end
+
       local function clear_marks()
         marks = {}
         for _, buf in ipairs(vim.api.nvim_list_bufs()) do
@@ -86,22 +98,91 @@ return {
         oil.open(dest)
       end
 
-      vim.api.nvim_create_autocmd('BufEnter', {
-        pattern = 'oil://*',
-        callback = function(ev) refresh_marks(ev.buf) end,
-      })
+      -- ── File openers (mirrors yazi.toml [opener] + [open] rules) ────────
+      local function launch(filepath, cmd)
+        vim.fn.jobstart(vim.list_extend(cmd, { filepath }), { detach = true })
+      end
 
-      -- ── Misc actions ────────────────────────────────────────────────────
+      local openers = {
+        edit    = function(p) vim.cmd('edit ' .. vim.fn.fnameescape(p)) end,
+        browse  = function(p) launch(p, { 'firefox' }) end,
+        image   = function(p) launch(p, { 'imv' }) end,
+        video   = function(p) launch(p, { 'mpv', '--save-position-on-quit' }) end,
+        audio   = function(p) launch(p, { 'mpv', '--no-video', '--osd-level=3' }) end,
+        pdf     = function(p) launch(p, { 'zathura' }) end,
+        office  = function(p) launch(p, { 'flatpak', 'run', 'org.libreoffice.LibreOffice' }) end,
+        torrent = function(p) launch(p, { 'transmission-remote', '--add' }) end,
+        gimp    = function(p) launch(p, { 'gimp' }) end,
+      }
+
+      local open_rules = {
+        { mime = '^text/html',                     opener = 'browse' },
+        { name = '%.xcf$',                         opener = 'gimp' },
+        { mime = '^image/',                        opener = 'image' },
+        { mime = '^video/',                        opener = 'video' },
+        { mime = '^audio/',                        opener = 'audio' },
+        { mime = 'application/ogg',                opener = 'audio' },
+        { mime = 'application/pdf',                opener = 'pdf' },
+        { name = '%.(pptx|docx|xlsx|odt|ods|odp|ppt|doc|xls)$', opener = 'office' },
+        { name = '%.torrent$',                     opener = 'torrent' },
+        { mime = 'application/x%-bittorrent',      opener = 'torrent' },
+        { mime = '^text/',                         opener = 'edit' },
+        { mime = 'application/json',               opener = 'edit' },
+        { mime = 'application/xml',                opener = 'edit' },
+        { mime = 'inode/x%-empty',                 opener = 'edit' },
+      }
+
+      local function open_file(filepath, name)
+        local mime = vim.fn.system({ 'file', '--mime-type', '-b', filepath }):gsub('%s+', '')
+        for _, rule in ipairs(open_rules) do
+          if (rule.mime and mime:match(rule.mime)) or (rule.name and name:match(rule.name)) then
+            openers[rule.opener](filepath)
+            return
+          end
+        end
+        openers.edit(filepath)
+      end
+
+      local function smart_enter()
+        local oil = require 'oil'
+        local entry = oil.get_cursor_entry()
+        if not entry then return end
+        if entry.type == 'directory' then
+          require('oil.actions').select.callback()
+          return
+        end
+        local dir = oil.get_current_dir()
+        if not dir then return end
+        open_file(dir .. entry.name, entry.name)
+      end
+
       local function open_external()
         local oil = require 'oil'
         local entry = oil.get_cursor_entry()
         local dir = oil.get_current_dir()
         if not entry or not dir then return end
+        open_file(dir .. entry.name, entry.name)
+      end
+
+      local function chmod()
+        local oil = require 'oil'
+        local entry = oil.get_cursor_entry()
+        local dir = oil.get_current_dir()
+        if not entry or not dir then return end
         local filepath = dir .. entry.name
-        local opener = vim.fn.executable 'rifle' == 1 and 'rifle'
-          or vim.fn.executable 'xdg-open' == 1 and 'xdg-open'
-          or vim.fn.executable 'open' == 1 and 'open'
-        if opener then vim.fn.jobstart({ opener, filepath }, { detach = true }) end
+        vim.ui.input({ prompt = 'chmod ' .. entry.name .. ': ' }, function(mode)
+          if not mode or mode == '' then return end
+          local use_sudo = vim.fn.filewritable(filepath) == 0
+          local cmd = use_sudo
+            and { 'sudo', 'chmod', mode, filepath }
+            or { 'chmod', mode, filepath }
+          local result = vim.system(cmd):wait()
+          if result.code ~= 0 then
+            vim.notify(result.stderr, vim.log.levels.ERROR)
+          else
+            oil.open(dir)
+          end
+        end)
       end
 
       local function extract_archive()
@@ -109,13 +190,51 @@ return {
         local entry = oil.get_cursor_entry()
         local dir = oil.get_current_dir()
         if not entry then return end
-        vim.fn.jobstart({ 'aunpack', entry.name }, {
+        vim.fn.jobstart({ 'aunpack', '-D', entry.name }, {
           cwd = dir,
           on_exit = function(_, code)
-            if code == 0 then require('oil').refresh() end
+            if code == 0 then require('oil').open(dir) end
           end,
         })
       end
+
+      vim.api.nvim_create_autocmd('BufEnter', {
+        pattern = 'oil://*',
+        callback = function(ev) refresh_marks(ev.buf) end,
+      })
+
+      local function s(sort)
+        return function() require('oil').set_sort(sort) end
+      end
+
+      local sort_hydra = require('hydra')({
+        name = 'Sort',
+        mode = 'n',
+        hint = [[
+ n: Name (A→Z)      N: Name (Z→A)
+ s: Size (↑)        S: Size (↓)
+ m: Modified (↑)    M: Modified (↓)
+ c: Created (↑)     C: Created (↓)
+ a: Accessed (↑)    A: Accessed (↓)
+ <Esc>: cancel
+]],
+        config = { hint = { type = 'window', position = 'bottom' } },
+        heads = {
+          { 'n', s { { 'type', 'asc' }, { 'name', 'asc' } },       { desc = 'Name (A→Z)',         exit = true } },
+          { 'N', s { { 'type', 'asc' }, { 'name', 'desc' } },      { desc = 'Name (Z→A)',         exit = true } },
+          { 's', s { { 'type', 'asc' }, { 'size', 'asc' } },       { desc = 'Size (small→large)', exit = true } },
+          { 'S', s { { 'type', 'asc' }, { 'size', 'desc' } },      { desc = 'Size (large→small)', exit = true } },
+          { 'm', s { { 'type', 'asc' }, { 'mtime', 'desc' } },     { desc = 'Modified (newest)',  exit = true } },
+          { 'M', s { { 'type', 'asc' }, { 'mtime', 'asc' } },      { desc = 'Modified (oldest)',  exit = true } },
+          { 'c', s { { 'type', 'asc' }, { 'birthtime', 'desc' } }, { desc = 'Created (newest)',   exit = true } },
+          { 'C', s { { 'type', 'asc' }, { 'birthtime', 'asc' } },  { desc = 'Created (oldest)',   exit = true } },
+          { 'a', s { { 'type', 'asc' }, { 'atime', 'desc' } },     { desc = 'Accessed (newest)',  exit = true } },
+          { 'A', s { { 'type', 'asc' }, { 'atime', 'asc' } },      { desc = 'Accessed (oldest)',  exit = true } },
+          { '<Esc>', nil, { exit = true, desc = false } },
+          { 'q',    nil, { exit = true, desc = false } },
+        },
+      })
+
 
       -- ── Bookmarks ───────────────────────────────────────────────────────
       local bookmarks = {
@@ -137,6 +256,16 @@ return {
       end
 
       -- ── Setup ────────────────────────────────────────────────────────────
+      function _G.get_oil_winbar()
+        local bufnr = vim.api.nvim_win_get_buf(vim.g.statusline_winid)
+        local dir = require('oil').get_current_dir(bufnr)
+        if dir then
+          return vim.fn.fnamemodify(dir, ':~')
+        else
+          return vim.api.nvim_buf_get_name(0)
+        end
+      end
+
       require('oil').setup {
         default_file_explorer = true,
         delete_to_trash = true,
@@ -149,12 +278,14 @@ return {
         },
         keymaps = vim.tbl_extend('force', {
           ['q'] = 'actions.close',
-          ['<CR>'] = { desc = 'Open with system app', callback = open_external },
+          ['<CR>'] = { desc = 'Smart enter', callback = smart_enter },
           ['<S-h>'] = { 'actions.parent', mode = 'n' },
           ['<S-l>'] = 'actions.select',
+          ['O'] = { desc = 'Sort', callback = function() sort_hydra:activate() end },
           ['s'] = { 'actions.change_sort', mode = 'n' },
           ['?'] = { 'actions.show_help', mode = 'n' },
           ['x'] = { desc = 'Extract archive', callback = extract_archive },
+          ['cm'] = { desc = 'chmod', callback = chmod },
           ['cd'] = {
             desc = 'Create directory',
             callback = function()
@@ -168,7 +299,9 @@ return {
             end,
           },
           -- Two-pane workflow
+          ['<Tab>'] = { desc = 'Toggle mark', callback = toggle_mark },
           ['m'] = { desc = 'Toggle mark', callback = toggle_mark },
+          ['<S-Tab>'] = { desc = 'Unmark under cursor', callback = unmark },
           ['M'] = { desc = 'Clear all marks', callback = clear_marks },
           ['p'] = { desc = 'Paste (copy) marked files here', callback = function() paste_marks(false) end },
           ['P'] = { desc = 'Paste (move) marked files here', callback = function() paste_marks(true) end },
@@ -184,6 +317,7 @@ return {
         columns = { 'icon', 'permissions', 'size', 'mtime' },
         buf_options = { buflisted = false, bufhidden = 'hide' },
         win_options = {
+          winbar = '%!v:lua.get_oil_winbar()',
           wrap = false,
           signcolumn = 'no',
           cursorcolumn = false,
