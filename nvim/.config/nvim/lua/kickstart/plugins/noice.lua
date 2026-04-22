@@ -8,7 +8,6 @@ return {
     opts = {
       cmdline = {
         enabled = true,
-        view = "cmdline",  -- classic bottom bar instead of floating popup
       },
       lsp = {
         progress = { enabled = false },
