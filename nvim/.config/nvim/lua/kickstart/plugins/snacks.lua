@@ -26,6 +26,13 @@ return {
             },
           },
         },
+        sources = {
+          projects = {
+            formatters = {
+              file = { filename_first = true },
+            },
+          },
+        },
       },
       scroll = {
         -- conflicts with stay-centered.nvim
@@ -69,18 +76,18 @@ return {
         desc = 'Smart Find Files',
       },
       {
+        '<leader>fb',
+        function()
+          Snacks.picker.lines()
+        end,
+        desc = 'Find in buffer',
+      },
+      {
         '<leader>p',
         function()
           Snacks.picker.git_files()
         end,
         desc = 'Find Git Files',
-      },
-      {
-        '<leader>fb',
-        function()
-          Snacks.picker.buffers()
-        end,
-        desc = 'Buffers',
       },
       {
         '<leader>fr',
@@ -102,6 +109,13 @@ return {
           Snacks.picker.help()
         end,
         desc = 'Help',
+      },
+      {
+        '<leader>:',
+        function()
+          Snacks.picker.command_history()
+        end,
+        desc = 'command history',
       },
     },
   },

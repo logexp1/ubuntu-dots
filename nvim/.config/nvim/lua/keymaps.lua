@@ -36,9 +36,9 @@ map('v', ';', ':', { desc = 'Command mode', noremap = true })
 
 map('n', 'U', '<C-r>', { desc = 'Redo', noremap = true })
 
--- vim.keymap.set({ "n", "i", "v" }, "<C-f>", function()
--- 	require("snacks").picker.grep_buffers()
--- end, { desc = "Grep buffers" })
+vim.keymap.set({ 'n', 'i', 'v' }, '<C-f>', function()
+  Snacks.picker.lines({ pattern = vim.fn.expand '<cword>' })
+end, { desc = 'Search buffer for word under cursor' })
 
 vim.keymap.set({ 'n', 'i', 'v' }, '<C-b>', function()
   vim.cmd 'buffer #'

@@ -53,6 +53,7 @@ firefox
 foot
 hyprpolkitagent
 cascadia-code-fonts
+jetbrains-mono-fonts
 neovim dnf-copr agriffis/neovim-nightly
 kitty
 aquamarine-devel
@@ -100,3 +101,5 @@ imv
 chafa
 satty
 
+# kubernetes
+k9s

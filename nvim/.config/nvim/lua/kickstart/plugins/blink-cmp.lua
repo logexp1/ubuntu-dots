@@ -60,8 +60,8 @@ return {
 				preset = "none",
 				["<C-j>"] = { "select_next", "fallback" },
 				["<C-k>"] = { "select_prev", "fallback" },
-				["<Tab>"] = { "snippet_forward", "fallback" },
-				["<S-Tab>"] = { "snippet_backward", "fallback" },
+				["<Tab>"] = { "snippet_forward", "select_next", "fallback" },
+				["<S-Tab>"] = { "snippet_backward", "select_prev", "fallback" },
 				["<CR>"] = { "select_and_accept", "fallback" },
 				["<C-space>"] = { "show", "show_documentation", "hide_documentation" },
 				["<C-e>"] = { "hide" },
@@ -103,6 +103,27 @@ return {
 
 			-- Shows a signature help window while you type arguments for a function
 			signature = { enabled = true },
+
+			cmdline = {
+				enabled = true,
+				keymap = {
+					preset = "cmdline",
+					["<C-j>"] = { "select_next", "fallback" },
+					["<C-k>"] = { "select_prev", "fallback" },
+					["<CR>"] = { "accept", "fallback" },
+					["<Right>"] = false,
+					["<Left>"] = false,
+				},
+				completion = {
+					list = { selection = { preselect = false } },
+					menu = {
+						auto_show = function()
+							return vim.fn.getcmdtype() == ":"
+						end,
+					},
+					ghost_text = { enabled = true },
+				},
+			},
 		},
 	},
 }
