@@ -103,6 +103,9 @@ return {
           -- Jump to the definition of the word under your cursor.
           --  To jump back, press <C-t>.
           map('grd', function()
+            if vim.bo.filetype == 'markdown' and require('markdown-links').follow() then
+              return
+            end
             Snacks.picker.lsp_definitions()
           end, '[G]oto [D]efinition')
 

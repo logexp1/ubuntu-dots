@@ -99,7 +99,7 @@ readability-cli npm
 zathura
 imv
 chafa
-satty dnf-copr mineiro/satty
+satty 
 
 # kubernetes
 k9s
