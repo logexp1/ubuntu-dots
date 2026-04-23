@@ -428,7 +428,7 @@ I really prefer default doom-one theme...
 size 를 float 로 설정하면 hidpi setting 을 따르게 된다.
 #+begin_src emacs-lisp
 (setq!
- doom-font (font-spec :family "Cascadia Mono" :size 10.0)
+ doom-font (font-spec :family "Cascadia Mono NF" :size 10.0)
  ;; doom-font (font-spec :family "Roboto Mono" :size 15)
  doom-variable-pitch-font (font-spec :family "Noto Sans CJK KR")
  ;; doom-serif-font (font-spec :family "Libre Baskerville")
