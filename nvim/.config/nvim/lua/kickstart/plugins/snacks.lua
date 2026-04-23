@@ -28,9 +28,15 @@ return {
         },
         sources = {
           projects = {
-            formatters = {
-              file = { filename_first = true },
-            },
+            format = function(item, _)
+              local name = vim.fn.fnamemodify(item.file, ':t')
+              local parent = vim.fn.fnamemodify(item.file, ':~:h')
+              return {
+                { '  ', 'SnacksPickerDirectory' },
+                { name, 'SnacksPickerDirectory' },
+                { '  ' .. parent, 'SnacksPickerDir' },
+              }
+            end,
           },
         },
       },

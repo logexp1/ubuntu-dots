@@ -8,9 +8,9 @@ return {
         enable_inlay_hints = true,
       },
       mappings = {
-        enable_markdown_mappings = true,
-        enable_picker_keybindings = true,
-        enable_lsp_keybindings = true,
+        enable_markdown_mappings = false,
+        enable_picker_keybindings = false,
+        enable_lsp_keybindings = false,
         enable_preview_keybindings = false,
       },
       picker = {
