@@ -6,6 +6,7 @@ return {
       lsp = {
         auto_format_on_save = true,
         enable_inlay_hints = true,
+        enable_folding = false,
       },
       mappings = {
         enable_markdown_mappings = false,

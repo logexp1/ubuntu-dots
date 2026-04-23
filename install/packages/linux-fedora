@@ -93,12 +93,16 @@ iwes cargo
 
 # npm packages
 yaml-language-server npm
+readability-cli npm
 
 # media
 zathura
 imv
 chafa
-satty
+satty dnf-copr mineiro/satty
 
 # kubernetes
 k9s
+
+# Flatpak
+md.obsidian.Obsidian flatpak

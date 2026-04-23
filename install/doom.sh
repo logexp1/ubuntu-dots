@@ -7,7 +7,7 @@ run() {
     local doom_config="$HOME/.config/doom"
 
     log_step "doom" "Symlinking org directory..."
-    ln -sn "$HOME/OneDrive/org" "$HOME/.org"
+    [[ -e "$HOME/.org" ]] || ln -sn "$HOME/OneDrive/org" "$HOME/.org"
 
     log_step "doom" "Cloning Doom Emacs..."
     require_cmd git

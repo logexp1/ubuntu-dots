@@ -103,6 +103,18 @@ install_with() {
 				cargo install "$pkg" --locked
 			fi
             ;;
+        flatpak)
+            if ! command -v flatpak &>/dev/null; then
+                log_step "packages" "flatpak not found, installing..."
+                case "$OS" in
+                    linux-fedora) sudo dnf install -y flatpak ;;
+                    linux-debian) sudo apt install -y flatpak ;;
+                    linux-arch)   sudo pacman -S --noconfirm flatpak ;;
+                esac
+            fi
+            flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
+            flatpak install -y flathub "$pkg"
+            ;;
         *)
             log_error "packages" "Unknown package manager: $pm"
             return 1
