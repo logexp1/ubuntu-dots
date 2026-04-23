@@ -2,6 +2,10 @@
 
 export GRIMBLAST_EDITOR="satty --filename"
 
+# Remove stale grimblast lock if the process that created it is no longer running
+_lockfile="${XDG_RUNTIME_DIR:-${XDG_CACHE_DIR:-$HOME/.cache}}/grimblast.lock"
+[[ -e "$_lockfile" ]] && ! pgrep -x grimblast &>/dev/null && rm -f "$_lockfile"
+
 screenshot_opts=("󰍺 All Screen" "󰍹 Active Screen" "󱣴 Capture Area")
 action_opts=(" Copy" " Save" " Copy & Save" " Edit")
 
