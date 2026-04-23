@@ -40,12 +40,12 @@ prompt {
 
 textbox-prompt-colon {
     expand: 			            false;
-    str: 			                "";
+    str: 			                "󰄀";
     border-radius:                  100%;
     background-color:               @BG;
     text-color:                     @FG;
     padding:                        8px 12px 8px 12px;
-    font:			                "Feather 20";
+    font:			                "Cascadia Mono NF 20";
 }
 
 entry {

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+SCRATCHPAD_CLASSES=("dropdown-kitty" "dropdown")
+
+class=$(hyprctl activewindow -j | jq -r '.class')
+
+for sc in "${SCRATCHPAD_CLASSES[@]}"; do
+    if [[ "$class" == "$sc" ]]; then
+        pypr hide kitty
+        pypr hide term
+        exit 0
+    fi
+done
+
+hyprctl dispatch killactive

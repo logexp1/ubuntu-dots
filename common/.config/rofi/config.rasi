@@ -1,5 +1,5 @@
 configuration {
-    font: "JetBrains Mono Nerd Font 10";
+    font: "Cascadia Mono NF 10";
 	  kb-accept-entry: "Return";
     kb-remove-to-eol: "Control+Shift+k";
     kb-row-left: "Control+h";

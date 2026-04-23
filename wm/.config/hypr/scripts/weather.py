@@ -1,122 +1,80 @@
 #!/usr/bin/env python3
 
-import subprocess
-from pyquery import PyQuery  # install using `pip install pyquery`
 import json
+import urllib.request
 
+# Set your city name, or leave empty for IP-based auto-detection
+LOCATION = ""
 
-# original code https://gist.github.com/Surendrajat/ff3876fd2166dd86fb71180f4e9342d7
-# weather icons
 weather_icons = {
-    "sunnyDay": "",
-    "clearNight": "󰖔",
-    "cloudyFoggyDay": "",
-    "cloudyFoggyNight": "",
-    "rainyDay": "󰼳",
-    "rainyNight": "󰖗",
-    "snowyIcyDay": "󰼴",
-    "snowyIcyNight": "󰖘",
-    "severe": "",
-    "default": "",
+    "sunnyDay":        "󰖙",
+    "clearNight":      "󰖔",
+    "cloudyFoggyDay":  "󰖐",
+    "cloudyFoggyNight":"󰖑",
+    "rainyDay":        "󰼳",
+    "rainyNight":      "󰖗",
+    "snowyIcyDay":     "󰼴",
+    "snowyIcyNight":   "󰖘",
+    "severe":          "󰖓",
+    "default":         "󰖚",
 }
 
-# get location_id
-# to get your own location_id, go to https://weather.com & search your location.
-# once you choose your location, you can see the location_id in the URL(64 chars long hex string)
-# like this: https://weather.com/en-IN/weather/today/l/c3e96d6cc4965fc54f88296b54449571c4107c73b9638c16aafc83575b4ddf2e
-location_id = "2aa0abfbd938e8f9602928fdd9bf7413bbe098ba8e31f364127eac2574ad7897"  # TODO
+def code_to_status(code, is_night=False):
+    code = int(code)
+    if code == 113:
+        return "clearNight" if is_night else "sunnyDay"
+    elif code in (116, 119, 122, 143, 248, 260):
+        return "cloudyFoggyNight" if is_night else "cloudyFoggyDay"
+    elif code in range(176, 282):
+        return "rainyNight" if is_night else "rainyDay"
+    elif code in range(282, 395):
+        if code >= 386:
+            return "severe"
+        if code in (323, 326, 329, 332, 335, 338, 350, 368, 371, 374, 377):
+            return "snowyIcyNight" if is_night else "snowyIcyDay"
+        return "rainyNight" if is_night else "rainyDay"
+    elif code == 200:
+        return "severe"
+    return "default"
 
-# get html page
-url = "https://weather.com/en-IN/weather/today/l/" + location_id
-html_data = PyQuery(url=url)
+url = f"https://wttr.in/{LOCATION}?format=j1"
+try:
+    with urllib.request.urlopen(url, timeout=10) as r:
+        data = json.loads(r.read())
+except Exception as e:
+    print(json.dumps({"text": "N/A", "alt": "unavailable", "tooltip": str(e), "class": "default"}))
+    raise SystemExit
 
-# current temperature
-temp = html_data("span[data-testid='TemperatureValue']").eq(0).text()
-# print(temp)
+current = data["current_condition"][0]
+today   = data["weather"][0]
 
-# current status phrase
-status = html_data("div[data-testid='wxPhrase']").text()
-status = f"{status[:16]}.." if len(status) > 17 else status
-# print(status)
+temp        = current["temp_C"]
+feels_like  = current["FeelsLikeC"]
+humidity    = current["humidity"]
+wind        = current["windspeedKmph"]
+visibility  = current["visibility"]
+status      = current["weatherDesc"][0]["value"]
+status      = f"{status[:16]}.." if len(status) > 17 else status
+temp_min    = today["mintempC"]
+temp_max    = today["maxtempC"]
 
-# status code
-status_code = html_data("#regionHeader").attr("class").split(" ")[2].split("-")[2]
-# print(status_code)
+code       = current["weatherCode"]
+status_key = code_to_status(code)
+icon       = weather_icons.get(status_key, weather_icons["default"])
 
-# status icon
-icon = (
-    weather_icons[status_code]
-    if status_code in weather_icons
-    else weather_icons["default"]
-)
-# print(icon)
-
-# temperature feels like
-temp_feel = html_data(
-    "div[data-testid='FeelsLikeSection'] > span > span[data-testid='TemperatureValue']"
-).text()
-temp_feel_text = f"Feels like {temp_feel}c"
-# print(temp_feel_text)
-
-# min-max temperature
-temp_min = (
-    html_data("div[data-testid='wxData'] > span[data-testid='TemperatureValue']")
-    .eq(0)
-    .text()
-)
-temp_max = (
-    html_data("div[data-testid='wxData'] > span[data-testid='TemperatureValue']")
-    .eq(1)
-    .text()
-)
-temp_min_max = f"  {temp_min}\t\t  {temp_max}"
-# print(temp_min_max)
-
-# wind speed
-wind_speed = html_data("span[data-testid='Wind']").text().split("\n")[1]
-wind_text = f"煮  {wind_speed}"
-# print(wind_text)
-
-# humidity
-humidity = html_data("span[data-testid='PercentageValue']").text()
-humidity_text = f"  {humidity}"
-# print(humidity_text)
-
-# visibility
-visbility = html_data("span[data-testid='VisibilityValue']").text()
-visbility_text = f"  {visbility}"
-# print(visbility_text)
-
-# air quality index
-air_quality_index = html_data("text[data-testid='DonutChartValue']").text()
-# print(air_quality_index)
-
-# hourly rain prediction
-prediction = html_data("section[aria-label='Hourly Forecast']")(
-    "div[data-testid='SegmentPrecipPercentage'] > span"
-).text()
-prediction = prediction.replace("Chance of Rain", "")
-prediction = f"\n\n (hourly) {prediction}" if len(prediction) > 0 else prediction
-# print(prediction)
-
-# tooltip text
-tooltip_text = str.format(
-    "\t\t{}\t\t\n{}\n{}\n{}\n\n{}\n{}\n{}{}",
-    f'<span size="xx-large">{temp}</span>',
-    f"<big> {icon}</big>",
-    f"<b>{status}</b>",
-    f"<small>{temp_feel_text}</small>",
-    f"<b>{temp_min_max}</b>",
-    f"{wind_text}\t{humidity_text}",
-    f"{visbility_text}\tAQI {air_quality_index}",
-    f"<i> {prediction}</i>",
+tooltip = (
+    f"\t\t<span size='xx-large'>{temp}°C</span>\t\t\n"
+    f"<big> {icon}</big>\n"
+    f"<b>{status}</b>\n"
+    f"<small>Feels like {feels_like}°C</small>\n\n"
+    f"<b>  {temp_min}°C\t\t  {temp_max}°C</b>\n"
+    f"  {wind} km/h\t  {humidity}%\n"
+    f"  {visibility} km"
 )
 
-# print waybar module data
-out_data = {
-    "text": f"{icon} {temp}",
-    "alt": status,
-    "tooltip": tooltip_text,
-    "class": status_code,
-}
-print(json.dumps(out_data))
+print(json.dumps({
+    "text":    f"{icon} {temp}°C",
+    "alt":     status,
+    "tooltip": tooltip,
+    "class":   status_key,
+}))

@@ -52,8 +52,7 @@ git+https://github.com/languitar/pass-git-helper.git pipx
 firefox
 foot
 hyprpolkitagent
-cascadia-code-fonts
-jetbrains-mono-fonts
+cascadia-mono-nf-fonts
 neovim dnf-copr agriffis/neovim-nightly
 kitty
 aquamarine-devel

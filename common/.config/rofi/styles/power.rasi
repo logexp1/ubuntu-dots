@@ -1,7 +1,7 @@
 
 * {
     /* Default background color */
-    font: "JetBrainsMono Bold 10";
+    font: "Cascadia Mono NF Bold 10";
     show-icons:                     false;
     drun-display-format:            "{name}";
     disable-history:                false;
@@ -76,7 +76,7 @@ element {
 element-text {
     background-color: 				#00000000;
     text-color:       				inherit;
-	font:							"Feather 15";
+	font:							"Cascadia Mono NF 15";
     expand:                         true;
     horizontal-align:               0.5;
     vertical-align:                 0.5;
