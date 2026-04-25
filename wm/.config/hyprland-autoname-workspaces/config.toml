@@ -1,26 +1,26 @@
-version = "1.1.14"
+version = "1.2.0"
 
 [class]
-foot = "󰆍"
-libreoffice-writer = ""
-"(?i)waydroid.*" = "droid"
-"(?i)emacs" = "<span color='purple'></span>"
-"(?i)floorp" = "<span color='green'>󰖟</span>"
-dropdown = "<span color='yellow'>󰆍</span>"
-virt-manager = ""
-zoom = ""
 "(?i)brave-browser" = "<span>󰖟</span>"
-DEFAULT = ""
-libreoffice-impress = ""
 chromium = ""
 ".*transmission.*" = ""
-"(?i)zathura" = ""
 libreoffice-startcenter = ""
-pavucontrol = ""
-"(?i)firefox" = "<span color='orange'> </span>"
+"(?i)floorp" = "<span color='green'>󰖟</span>"
+foot = "󰆍"
 "(?i)slack" = "󰒱"
+virt-manager = ""
+libreoffice-impress = ""
 swappy = ""
 libreoffice-calc = ""
+dropdown = "<span color='yellow'>󰆍</span>"
+zoom = ""
+"(?i)emacs" = "<span color='purple'></span>"
+"(?i)zathura" = ""
+DEFAULT = ""
+libreoffice-writer = ""
+"(?i)waydroid.*" = "droid"
+pavucontrol = ""
+"(?i)firefox" = "<span color='orange'> </span>"
 
 [class_active]
 
@@ -30,12 +30,12 @@ libreoffice-calc = ""
 
 [workspaces_name]
 
-[title_in_class."(brave-browser|firefox|chrom.*|floorp)"]
-"(?i)youtube" = ""
-"(?i)github" = "<span color='grey'></span>"
-
 [title_in_class."(?i)foot"]
 "emerge: (.+?/.+?)-.*" = "{match1}"
+
+[title_in_class."(brave-browser|firefox|chrom.*|floorp)"]
+"(?i)github" = "<span color='grey'></span>"
+"(?i)youtube" = ""
 
 [title_in_class_active."(brave-browser|firefox|chrom.*|floorp)"]
 "(?i)youtube" = "<span color='red'></span>"
@@ -54,7 +54,11 @@ libreoffice-calc = ""
 [initial_title_in_initial_class_active]
 
 [exclude]
+"[Ss]team" = "^(Friends List.*)?$"
+aProgram = "^$"
+"(?i)TestApp" = ""
 "" = "^$"
+"(?i)fcitx" = ".*"
 
 [format]
 dedup = true
@@ -68,36 +72,3 @@ client_active = "<span>{icon}</span>"
 client_dup = "{icon}{counter_sup}{delim}"
 client_dup_active = "*{icon}*{delim}{icon}{counter_unfocused_sup}"
 client_dup_fullscreen = "[{icon}]{delim}{icon}{counter_unfocused_sup}"
-
-# [initial_title_in_initial_class."(?i)kitty"]
-# "(?i)neomutt" = "neomutt"
-
-# [initial_title."(?i)kitty"]
-# "zsh" = "Zsh"
-
-# [initial_title_active."(?i)kitty"]
-# "zsh" = "*Zsh*"
-
-# Add your applications that need to be exclude
-# The key is the class, the value is the title.
-# You can put an empty title to exclude based on
-# class name only, "" make the job.
-[exclude]
-"" = "^$" # prevent displaying icon for empty class
-"(?i)fcitx" = ".*" # will match all title for fcitx
-"(?i)TestApp" = "" # will match all title for TestApp
-aProgram = "^$" # will match null title for aProgram
-"[Ss]team" = "^(Friends List.*)?$" # will match Steam friends list plus all popups (empty titles)
-
-[workspaces_name]
-0 = "zero"
-1 = "one"
-2 = "two"
-3 = "three"
-4 = "four"
-5 = "five"
-6 = "six"
-7 = "seven"
-8 = "eight"
-9 = "nine"
-10 = "ten"

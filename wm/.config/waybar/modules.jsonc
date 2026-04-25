@@ -1,6 +1,7 @@
 {
     "hyprland/workspaces": {
-        "format": "{name}"
+        "format": "{name}",
+        "ignore-workspaces": ["S-.*"]
     },
 
     // GROUP
