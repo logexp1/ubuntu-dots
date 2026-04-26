@@ -9,7 +9,7 @@ return {
         enable_folding = false,
       },
       mappings = {
-        enable_markdown_mappings = false,
+        enable_markdown_mappings = true,
         enable_picker_keybindings = false,
         enable_lsp_keybindings = false,
         enable_preview_keybindings = false,

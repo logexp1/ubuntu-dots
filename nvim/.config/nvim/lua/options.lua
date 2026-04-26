@@ -124,16 +124,4 @@ vim.api.nvim_create_autocmd('BufEnter', {
   end,
 })
 
--- Smart <CR> in markdown: follow link under cursor, else move to next line
-vim.api.nvim_create_autocmd('FileType', {
-  pattern = 'markdown',
-  callback = function(ev)
-    vim.keymap.set('n', '<CR>', function()
-      if not require('markdown-links').follow() then
-        vim.cmd 'normal! +'
-      end
-    end, { buffer = ev.buf, desc = 'Follow Markdown link' })
-  end,
-})
-
 -- vim: ts=2 sts=2 sw=2 et
