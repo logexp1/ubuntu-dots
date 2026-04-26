@@ -106,3 +106,6 @@ k9s
 
 # Flatpak
 md.obsidian.Obsidian flatpak
+
+# markdown
+graphviz

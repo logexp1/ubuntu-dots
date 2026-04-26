@@ -124,4 +124,33 @@ vim.api.nvim_create_autocmd('BufEnter', {
   end,
 })
 
+-- Open all folds by default
+vim.o.foldlevelstart = 99
+
+-- Markdown: header-based folding + Tab to toggle
+function _G.markdown_foldexpr()
+  local line = vim.fn.getline(vim.v.lnum)
+  local level = line:match '^(#+)%s'
+  if level then return '>' .. #level end
+  return '='
+end
+
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'markdown',
+  callback = function(ev)
+    vim.wo.foldmethod = 'expr'
+    vim.wo.foldexpr = 'v:lua.markdown_foldexpr()'
+    vim.schedule(function()
+      vim.keymap.set('n', '-', function() require('oil').open() end, { buffer = ev.buf, desc = 'Open parent directory' })
+    end)
+    vim.keymap.set('n', '<Tab>', function()
+      if vim.api.nvim_get_current_line():match '^#' then
+        pcall(vim.cmd, 'normal! za')
+      else
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'n', false)
+      end
+    end, { buffer = ev.buf, desc = 'Toggle fold on header' })
+  end,
+})
+
 -- vim: ts=2 sts=2 sw=2 et
