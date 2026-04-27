@@ -297,6 +297,10 @@ return {
         },
       }
 
+      -- markdown-oxide: installed via cargo, not managed by mason
+      vim.lsp.config('markdown_oxide', { capabilities = capabilities })
+      vim.lsp.enable('markdown_oxide')
+
       -- Must run after mason-lspconfig.setup since lspconfig.setup() re-enables it
       vim.lsp.enable('stylua', false)
     end,
