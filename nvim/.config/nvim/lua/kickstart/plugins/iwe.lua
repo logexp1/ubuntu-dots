@@ -61,6 +61,11 @@ return {
       map('n', '<leader>if', '<cmd>lua vim.lsp.buf.format()<cr>', { desc = 'IWE Format' })
       map('n', '<leader>in', '<cmd>lua vim.lsp.buf.rename()<cr>', { desc = 'IWE Rename' })
 
+      -- Plugin loaded after FileType fired — start LSP for current buffer if markdown
+      if vim.bo.filetype == 'markdown' then
+        require('iwe.lsp').start()
+      end
+
       require('which-key').add {
         { '<leader>i', group = 'IWE' },
         { '<leader>ia', desc = 'Code Actions' },
