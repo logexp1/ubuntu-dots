@@ -5,7 +5,7 @@ return {
   keys = {
     {
       -- Customize or remove this keymap to your liking
-      '<leader>f',
+      '<localleader>f',
       function()
         require('conform').format { async = true }
       end,
@@ -22,6 +22,7 @@ return {
       lua = { 'stylua' },
       python = { 'ruff_organize_imports', 'ruff_format' },
       javascript = { 'prettierd', 'prettier', stop_after_first = true },
+      markdown = { 'prettier' },
     },
     -- Set default options
     default_format_opts = {
@@ -31,6 +32,14 @@ return {
     format_on_save = { timeout_ms = 500 },
     -- Customize formatters
     formatters = {
+      prettier = {
+        prepend_args = function(_, ctx)
+          if vim.bo[ctx.buf].filetype == 'markdown' then
+            return { '--prose-wrap', 'always', '--print-width', '80' }
+          end
+          return {}
+        end,
+      },
       stylelua = {
         prepend_args = {
           '--config-path',

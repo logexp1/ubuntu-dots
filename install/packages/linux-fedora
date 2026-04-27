@@ -94,6 +94,7 @@ iwes cargo
 # npm packages
 yaml-language-server npm
 readability-cli npm
+prettier npm
 
 # media
 zathura
